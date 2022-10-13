@@ -8,9 +8,7 @@ use ipl\Scheduler\Common\Promises;
 use ipl\Scheduler\Common\Timers;
 use ipl\Scheduler\Contract\Frequency;
 use ipl\Scheduler\Contract\Task;
-use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
+use ipl\Stdlib\Events;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 use SplObjectStorage;
@@ -18,9 +16,15 @@ use Throwable;
 
 class Scheduler
 {
+    use Events;
     use Timers;
     use Promises;
-    use LoggerAwareTrait;
+
+    public const ON_TASK_DONE = 'task-done';
+
+    public const ON_TASK_FAILED = 'task-failed';
+
+    public const ON_TASK_SCHEDULED = 'task-scheduled';
 
     /** @var LoopInterface The underlying event loop responsible for spawning the tasks */
     protected $loop;
@@ -28,18 +32,13 @@ class Scheduler
     /** @var SplObjectStorage The scheduled tasks of this scheduler */
     protected $tasks;
 
-    public function __construct(LoggerInterface $logger = null)
+    public function __construct()
     {
-        $this->logger = $logger;
         $this->loop = Loop::get();
 
         $this->tasks = new SplObjectStorage();
         $this->timers = new SplObjectStorage();
         $this->promises = new SplObjectStorage();
-
-        if (! $logger) {
-            $this->setLogger(new NullLogger());
-        }
 
         $this->init();
     }
@@ -68,8 +67,6 @@ class Scheduler
             throw new InvalidArgumentException(sprintf('Task %s not scheduled', $task->getName()));
         }
 
-        $this->logger->info(sprintf('Removing task %s', $task->getName()));
-
         $this->detachTimer($task->getUuid());
         $this->cancelPromises($task->getUuid());
 
@@ -85,8 +82,6 @@ class Scheduler
      */
     public function removeTasks(): self
     {
-        $this->logger->info('Removing all tasks...');
-
         foreach ($this->tasks as $task) {
             $this->remove($task);
         }
@@ -121,12 +116,10 @@ class Scheduler
             $this->loop->futureTick(function () use (&$task) {
                 $this->runTask($task);
             });
+            $this->emit(static::ON_TASK_SCHEDULED, [$task, $now]);
         }
 
         $nextDue = $frequency->getNextDue($now);
-        $this->logger->info(
-            sprintf('Scheduling job %s to run at %s', $task->getName(), $nextDue->format('Y-m-d H:i:s'))
-        );
 
         $loop = function () use (&$loop, &$task, $frequency) {
             $this->runTask($task);
@@ -134,18 +127,27 @@ class Scheduler
             $now = new DateTime();
             $nextDue = $frequency->getNextDue($now);
 
-            $this->logger->info(
-                sprintf('Scheduling job %s to run at %s', $task->getName(), $nextDue->format('Y-m-d H:i:s'))
-            );
-
             $timer = $this->loop->addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop);
             $this->addTimer($task->getUuid(), $timer);
+            $this->emit(static::ON_TASK_SCHEDULED, [$task, $nextDue]);
         };
 
         $timer = $this->loop->addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop);
         $this->addTimer($task->getUuid(), $timer);
+        $this->emit(static::ON_TASK_SCHEDULED, [$task, $nextDue]);
 
         $this->tasks->attach($task);
+    }
+
+    public function isValidEvent($event)
+    {
+        $events = array_flip([
+            static::ON_TASK_DONE,
+            static::ON_TASK_FAILED,
+            static::ON_TASK_SCHEDULED
+        ]);
+
+        return isset($events[$event]);
     }
 
     /**
@@ -162,16 +164,10 @@ class Scheduler
 
         $promise->then(
             function ($result) use ($task, &$promise) {
-                $this->logger->info(
-                    sprintf('Task %s successfully finished: %s', $task->getName(), $result)
-                );
+                $this->emit(self::ON_TASK_DONE, [$task, $result]);
             },
             function (Throwable $reason) use ($task) {
-                $this->logger->error(sprintf(
-                    'Failed to run task %s. An error occurred: %s',
-                    $task->getName(),
-                    $reason->getMessage()
-                ));
+                $this->emit(self::ON_TASK_FAILED, [$task, $reason]);
             }
         )->always(function () use ($task, &$promise) {
             // Unregister the promise without canceling it as it's already resolved
