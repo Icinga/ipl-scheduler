@@ -50,10 +50,11 @@ trait Promises
             );
         }
 
+        /** @var SplObjectStorage $promises */
         $promises = $this->promises->offsetGet($uuid);
         if (! $promises->contains($promise)) {
             throw new InvalidArgumentException(
-                sprintf('There is no such a promise for UUID %s to unregister', $uuid->toString())
+                sprintf('There is no such promise for UUID %s', $uuid->toString())
             );
         }
 
