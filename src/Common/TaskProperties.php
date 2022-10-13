@@ -2,6 +2,7 @@
 
 namespace ipl\Scheduler\Common;
 
+use LogicException;
 use Ramsey\Uuid\UuidInterface;
 
 trait TaskProperties
@@ -36,6 +37,10 @@ trait TaskProperties
 
     public function getName(): string
     {
+        if (! $this->name) {
+            throw new LogicException('Task name must not be null');
+        }
+
         return $this->name;
     }
 
@@ -55,6 +60,10 @@ trait TaskProperties
 
     public function getUuid(): UuidInterface
     {
+        if (! $this->uuid) {
+            throw new LogicException('Task UUID must not be null');
+        }
+
         return $this->uuid;
     }
 
