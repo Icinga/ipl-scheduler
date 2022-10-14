@@ -14,6 +14,12 @@ trait Timers
     /**
      * Set a timer for the given UUID
      *
+     * **Example Usage:**
+     *
+     * ```php
+     * $timers->attachTimer($uuid, Loop::addTimer($interval, $callback));
+     * ```
+     *
      * @param UuidInterface $uuid
      * @param TimerInterface $timer
      *
@@ -28,6 +34,12 @@ trait Timers
 
     /**
      * Detach and return the timer for the given UUID, if any
+     *
+     * **Example Usage:**
+     *
+     * ```php
+     * Loop::cancelTimer($timers->detachTimer($uuid));
+     * ```
      *
      * @param UuidInterface $uuid
      *
