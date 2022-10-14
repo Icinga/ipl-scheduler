@@ -16,6 +16,13 @@ trait Promises
     /**
      * Add the given promise for the specified UUID
      *
+     * **Example Usage:**
+     *
+     * ```php
+     * $promise = work();
+     * $promises->addPromise($uuid, $promise);
+     * ```
+     *
      * @param UuidInterface $uuid
      * @param PromiseInterface $promise
      *
@@ -34,6 +41,14 @@ trait Promises
 
     /**
      * Remove the given promise for the specified UUID
+     *
+     * **Example Usage:**
+     *
+     * ```php
+     * $promise->always(function () use ($uuid, $promise) {
+     *     $promises->removePromise($uuid, $promise);
+     * })
+     * ```
      *
      * @param UuidInterface $uuid
      * @param PromiseInterface $promise
@@ -66,6 +81,14 @@ trait Promises
 
     /**
      * Detach and return promises for the given UUID, if any
+     *
+     * **Example Usage:**
+     *
+     * ```php
+     * foreach ($promises->detachPromises($uuid) as $promise) {
+     *     $promise->cancel();
+     * }
+     * ```
      *
      * @param UuidInterface $uuid
      *
