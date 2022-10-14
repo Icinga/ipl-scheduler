@@ -10,7 +10,6 @@ use ipl\Scheduler\Contract\Frequency;
 use ipl\Scheduler\Contract\Task;
 use ipl\Stdlib\Events;
 use React\EventLoop\Loop;
-use React\EventLoop\LoopInterface;
 use React\Promise\ExtendedPromiseInterface;
 use SplObjectStorage;
 use Throwable;
@@ -31,15 +30,11 @@ class Scheduler
 
     public const ON_TASK_RUN = 'task-run';
 
-    /** @var LoopInterface The underlying event loop responsible for spawning the tasks */
-    protected $loop;
-
     /** @var SplObjectStorage The scheduled tasks of this scheduler */
     protected $tasks;
 
     public function __construct()
     {
-        $this->loop = Loop::get();
         $this->tasks = new SplObjectStorage();
 
         $this->promises = new SplObjectStorage();
@@ -70,7 +65,7 @@ class Scheduler
             throw new InvalidArgumentException(sprintf('Task %s not scheduled', $task->getName()));
         }
 
-        $this->loop->cancelTimer($this->detachTimer($task->getUuid()));
+        Loop::cancelTimer($this->detachTimer($task->getUuid()));
 
         $promises = $this->detachPromises($task->getUuid());
         if (! empty($promises)) {
@@ -124,7 +119,7 @@ class Scheduler
     {
         $now = new DateTime();
         if ($frequency->isDue($now)) {
-            $this->loop->futureTick(function () use ($task) {
+            Loop::futureTick(function () use ($task) {
                 $promise = $this->runTask($task);
                 $this->emit(static::ON_TASK_RUN, [$task, $promise]);
             });
@@ -139,7 +134,7 @@ class Scheduler
             $nextDue = $frequency->getNextDue($now);
             $this->attachTimer(
                 $task->getUuid(),
-                $this->loop->addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop)
+                Loop::addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop)
             );
             $this->emit(static::ON_TASK_SCHEDULED, [$task, $nextDue]);
         };
@@ -147,7 +142,7 @@ class Scheduler
         $nextDue = $frequency->getNextDue($now);
         $this->attachTimer(
             $task->getUuid(),
-            $this->loop->addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop)
+            Loop::addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop)
         );
         $this->emit(static::ON_TASK_SCHEDULED, [$task, $nextDue]);
 
