@@ -4,7 +4,7 @@ namespace ipl\Scheduler\Common;
 
 use InvalidArgumentException;
 use Ramsey\Uuid\UuidInterface;
-use React\Promise\CancellablePromiseInterface;
+use React\Promise\PromiseInterface;
 use SplObjectStorage;
 
 trait Promises
@@ -13,36 +13,36 @@ trait Promises
     private $promises;
 
     /**
-     * Register the given cancelable promise for the given UUID
+     * Add the given promise for the specified UUID
      *
      * @param UuidInterface $uuid
-     * @param CancellablePromiseInterface $promise
+     * @param PromiseInterface $promise
      *
      * @return $this
      */
-    protected function registerPromise(UuidInterface $uuid, CancellablePromiseInterface $promise): self
+    protected function addPromise(UuidInterface $uuid, PromiseInterface $promise): self
     {
         if (! $this->promises->contains($uuid)) {
-            $this->promises->attach($uuid, new SplObjectStorage());
+            $this->promises->attach($uuid, []);
         }
 
-        $this->promises->offsetGet($uuid)->attach($promise);
+        $this->promises[$uuid][] = $promise;
 
         return $this;
     }
 
     /**
-     * Unregister the given promise for the specified UUID
+     * Remove the given promise for the specified UUID
      *
      * @param UuidInterface $uuid
-     * @param CancellablePromiseInterface $promise
+     * @param PromiseInterface $promise
      *
      * @return $this
      *
      * @throws InvalidArgumentException If the given UUID doesn't have any registered promises or when the specified
-     *                                  UUID promises didn't contain the provided promise
+     *                                  UUID promises doesn't contain the provided promise
      */
-    protected function unregisterPromise(UuidInterface $uuid, CancellablePromiseInterface $promise): self
+    protected function removePromise(UuidInterface $uuid, PromiseInterface $promise): self
     {
         if (! $this->promises->contains($uuid)) {
             throw new InvalidArgumentException(
@@ -50,43 +50,34 @@ trait Promises
             );
         }
 
-        /** @var SplObjectStorage $promises */
-        $promises = $this->promises->offsetGet($uuid);
-        if (! $promises->contains($promise)) {
+        $key = array_search($promise, $this->promises[$uuid], true);
+        if ($key === false) {
             throw new InvalidArgumentException(
                 sprintf('There is no such promise for UUID %s', $uuid->toString())
             );
         }
-
-        $promises->detach($promise);
+        unset($this->promises[$uuid][$key]);
 
         return $this;
     }
 
     /**
-     * Cancel all registered promises for the given UUID
+     * Detach and return promises for the given UUID, if any
      *
      * @param UuidInterface $uuid
      *
-     * @return $this
-     *
-     * @throws InvalidArgumentException When there are no registered promises for the given UUID
+     * @return PromiseInterface[]
      */
-    protected function cancelPromises(UuidInterface $uuid): self
+    protected function detachPromises(UuidInterface $uuid): array
     {
         if (! $this->promises->contains($uuid)) {
-            throw new InvalidArgumentException(
-                sprintf('There are no registered promises for UUID %s to be canceled', $uuid->toString())
-            );
+            return [];
         }
 
-        /** @var CancellablePromiseInterface $promise */
-        foreach ($this->promises->offsetGet($uuid) as $promise) {
-            $promise->cancel();
-        }
+        $promises = $this->promises[$uuid];
 
         $this->promises->detach($uuid);
 
-        return $this;
+        return $promises;
     }
 }

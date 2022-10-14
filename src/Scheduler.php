@@ -11,6 +11,7 @@ use ipl\Scheduler\Contract\Task;
 use ipl\Stdlib\Events;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
+use React\Promise\ExtendedPromiseInterface;
 use SplObjectStorage;
 use Throwable;
 
@@ -20,11 +21,15 @@ class Scheduler
     use Timers;
     use Promises;
 
+    public const ON_TASK_CANCEL = 'task-cancel';
+
     public const ON_TASK_DONE = 'task-done';
 
     public const ON_TASK_FAILED = 'task-failed';
 
     public const ON_TASK_SCHEDULED = 'task-scheduled';
+
+    public const ON_TASK_RUN = 'task-run';
 
     /** @var LoopInterface The underlying event loop responsible for spawning the tasks */
     protected $loop;
@@ -65,8 +70,16 @@ class Scheduler
             throw new InvalidArgumentException(sprintf('Task %s not scheduled', $task->getName()));
         }
 
-        $this->detachTimer($task->getUuid());
-        $this->cancelPromises($task->getUuid());
+        $this->loop->cancelTimer($this->detachTimer($task->getUuid()));
+
+        $promises = $this->detachPromises($task->getUuid());
+        if (! empty($promises)) {
+            /** @var ExtendedPromiseInterface[] $promises */
+            foreach ($promises as $promise) {
+                $promise->cancel();
+            }
+            $this->emit(self::ON_TASK_CANCEL, [$task, $promises]);
+        }
 
         $this->tasks->detach($task);
 
@@ -112,17 +125,19 @@ class Scheduler
         $now = new DateTime();
         if ($frequency->isDue($now)) {
             $this->loop->futureTick(function () use ($task) {
-                $this->runTask($task);
+                $promise = $this->runTask($task);
+                $this->emit(static::ON_TASK_RUN, [$task, $promise]);
             });
             $this->emit(static::ON_TASK_SCHEDULED, [$task, $now]);
         }
 
         $loop = function () use (&$loop, $task, $frequency) {
-            $this->runTask($task);
+            $promise = $this->runTask($task);
+            $this->emit(static::ON_TASK_RUN, [$task, $promise]);
 
             $now = new DateTime();
             $nextDue = $frequency->getNextDue($now);
-            $this->addTimer(
+            $this->attachTimer(
                 $task->getUuid(),
                 $this->loop->addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop)
             );
@@ -130,7 +145,7 @@ class Scheduler
         };
 
         $nextDue = $frequency->getNextDue($now);
-        $this->addTimer(
+        $this->attachTimer(
             $task->getUuid(),
             $this->loop->addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop)
         );
@@ -142,9 +157,11 @@ class Scheduler
     public function isValidEvent($event)
     {
         $events = array_flip([
+            static::ON_TASK_CANCEL,
             static::ON_TASK_DONE,
             static::ON_TASK_FAILED,
-            static::ON_TASK_SCHEDULED
+            static::ON_TASK_SCHEDULED,
+            static::ON_TASK_RUN
         ]);
 
         return isset($events[$event]);
@@ -157,12 +174,12 @@ class Scheduler
      *
      * @return void
      */
-    protected function runTask(Task $task): void
+    protected function runTask(Task $task): ExtendedPromiseInterface
     {
         $promise = $task->run();
-        $this->registerPromise($task->getUuid(), $promise);
+        $this->addPromise($task->getUuid(), $promise);
 
-        $promise->then(
+        return $promise->then(
             function ($result) use ($task) {
                 $this->emit(self::ON_TASK_DONE, [$task, $result]);
             },
@@ -171,7 +188,7 @@ class Scheduler
             }
         )->always(function () use ($task, $promise) {
             // Unregister the promise without canceling it as it's already resolved
-            $this->unregisterPromise($task->getUuid(), $promise);
+            $this->removePromise($task->getUuid(), $promise);
         });
     }
 }
