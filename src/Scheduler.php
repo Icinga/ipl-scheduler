@@ -20,14 +20,90 @@ class Scheduler
     use Timers;
     use Promises;
 
+    /**
+     * Event raised when a {@link Task task} is canceled
+     *
+     * The task and its pending operations as an array of canceled {@link ExtendedPromiseInterface promise}s
+     * are passed as parameters to the event callbacks.
+     *
+     * **Example usage:**
+     *
+     * ```php
+     * $scheduler->on($scheduler::ON_TASK_CANCEL, function (Task $task, array $_) use ($logger) {
+     *     $logger->info(sprintf('Task %s cancelled', $task->getName()));
+     * });
+     * ```
+     */
     public const ON_TASK_CANCEL = 'task-cancel';
 
+    /**
+     * Event raised when an operation of a {@link Task task} is done
+     *
+     * The task and the operation result are passed as parameters to the event callbacks.
+     *
+     * **Example usage:**
+     *
+     * ```php
+     * $scheduler->on($scheduler::ON_TASK_DONE, function (Task $task, $result) use ($logger) {
+     *     $logger->info(sprintf('Operation of task %s done: %s', $task->getName(), $result));
+     * });
+     * ```
+     */
     public const ON_TASK_DONE = 'task-done';
 
+    /**
+     * Event raised when an operation of a {@link Task task} failed
+     *
+     * The task and the {@link Throwable reason} why the operation failed
+     * are passed as parameters to the event callbacks.
+     *
+     * **Example usage:**
+     *
+     * ```php
+     * $scheduler->on($scheduler::ON_TASK_FAILED, function (Task $task, Throwable $e) use ($logger) {
+     *     $logger->error(
+     *         sprintf('Operation of task %s failed: %s', $task->getName(), $e),
+     *         ['exception' => $e]
+     *     );
+     * });
+     * ```
+     */
     public const ON_TASK_FAILED = 'task-failed';
 
+    /**
+     * Event raised when a {@link Task task} operation is scheduled
+     *
+     * The task and the {@link DateTime time} when it should run
+     * are passed as parameters to the event callbacks.
+     *
+     * **Example usage:**
+     *
+     * ```php
+     * $scheduler->on($scheduler::ON_TASK_SCHEDULED, function (Task $task, DateTime $dateTime) use ($logger) {
+     *     $logger->info(sprintf(
+     *         'Scheduling task %s to run at %s',
+     *         $task->getName(),
+     *         IntlDateFormatter::formatObject($dateTime)
+     *     ));
+     * });
+     * ```
+     */
     public const ON_TASK_SCHEDULED = 'task-scheduled';
 
+    /**
+     * Event raised upon operation of a {@link Task task}
+     *
+     * The task and the possibly not yet completed result of the operation as a {@link ExtendedPromiseInterface promise}
+     * are passed as parameters to the event callbacks.
+     *
+     * **Example usage:**
+     *
+     * ```php
+     * $scheduler->on($scheduler::ON_TASK_OPERATION, function (Task $task, ExtendedPromiseInterface $_) use ($logger) {
+     *     $logger->info(sprintf('Task %s operating', $task->getName()));
+     * });
+     * ```
+     */
     public const ON_TASK_RUN = 'task-run';
 
     /** @var SplObjectStorage The scheduled tasks of this scheduler */
