@@ -189,9 +189,9 @@ class Scheduler
      * @param Task $task
      * @param Frequency $frequency
      *
-     * @return void
+     * @return $this
      */
-    public function schedule(Task $task, Frequency $frequency): void
+    public function schedule(Task $task, Frequency $frequency): self
     {
         $now = new DateTime();
         if ($frequency->isDue($now)) {
@@ -223,6 +223,8 @@ class Scheduler
         $this->emit(static::ON_TASK_SCHEDULED, [$task, $nextDue]);
 
         $this->tasks->attach($task);
+
+        return $this;
     }
 
     public function isValidEvent($event)
