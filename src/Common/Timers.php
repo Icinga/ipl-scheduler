@@ -9,7 +9,7 @@ use SplObjectStorage;
 trait Timers
 {
     /** @var SplObjectStorage */
-    private $timers;
+    protected $timers;
 
     /**
      * Set a timer for the given UUID
