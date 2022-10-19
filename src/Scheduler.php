@@ -141,16 +141,7 @@ class Scheduler
             throw new InvalidArgumentException(sprintf('Task %s not scheduled', $task->getName()));
         }
 
-        Loop::cancelTimer($this->detachTimer($task->getUuid()));
-
-        $promises = $this->detachPromises($task->getUuid());
-        if (! empty($promises)) {
-            /** @var ExtendedPromiseInterface[] $promises */
-            foreach ($promises as $promise) {
-                $promise->cancel();
-            }
-            $this->emit(self::ON_TASK_CANCEL, [$task, $promises]);
-        }
+        $this->cancelTask($task);
 
         $this->tasks->detach($task);
 
@@ -165,8 +156,10 @@ class Scheduler
     public function removeTasks(): self
     {
         foreach ($this->tasks as $task) {
-            $this->remove($task);
+            $this->cancelTask($task);
         }
+
+        $this->tasks = new SplObjectStorage();
 
         return $this;
     }
@@ -238,6 +231,25 @@ class Scheduler
         ]);
 
         return isset($events[$event]);
+    }
+
+    /**
+     * Cancel the timer of the task and all pending operations
+     *
+     * @param Task $task
+     */
+    protected function cancelTask(Task $task): void
+    {
+        Loop::cancelTimer($this->detachTimer($task->getUuid()));
+
+        $promises = $this->detachPromises($task->getUuid());
+        if (! empty($promises)) {
+            /** @var ExtendedPromiseInterface[] $promises */
+            foreach ($promises as $promise) {
+                $promise->cancel();
+            }
+            $this->emit(self::ON_TASK_CANCEL, [$task, $promises]);
+        }
     }
 
     /**
