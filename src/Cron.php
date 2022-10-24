@@ -9,6 +9,12 @@ use ipl\Scheduler\Contract\Frequency;
 
 class Cron implements Frequency
 {
+    public const PART_MINUTE = 0;
+    public const PART_HOUR = 1;
+    public const PART_DAY = 2;
+    public const PART_MONTH = 3;
+    public const PART_WEEKDAY = 4;
+
     /** @var CronExpression */
     protected $cron;
 
@@ -54,5 +60,34 @@ class Cron implements Frequency
         $this->start = $start;
 
         return $this;
+    }
+
+    /**
+     * Get the given part of the underlying cron expression
+     *
+     * @param int $part One of the classes `PART_*` constants
+     *
+     * @return string
+     *
+     * @throws InvalidArgumentException If the given part is invalid
+     */
+    public function getPart(int $part): string
+    {
+        $value = $this->cron->getExpression($part);
+        if ($value === null) {
+            throw new InvalidArgumentException(sprintf('Invalid expression part specified: %d', $part));
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get the parts of the underlying cron expression as an array
+     *
+     * @return string[]
+     */
+    public function getParts(): array
+    {
+        return $this->cron->getParts();
     }
 }
