@@ -31,6 +31,14 @@ class Cron implements Frequency
     public function __construct(string $expression)
     {
         $this->cron = new CronExpression($expression);
+
+        if (! CronExpression::supportsAlias('@minutely')) {
+            CronExpression::registerAlias('@minutely', '* * * * *');
+        }
+
+        if (! CronExpression::supportsAlias('@quarterly')) {
+            CronExpression::registerAlias('@quarterly', '0 0 1 */3 *');
+        }
     }
 
     public function isDue(DateTime $dateTime = null): bool
@@ -89,5 +97,17 @@ class Cron implements Frequency
     public function getParts(): array
     {
         return $this->cron->getParts();
+    }
+
+    /**
+     * Get whether the given cron expression is valid
+     *
+     * @param string $expression
+     *
+     * @return bool
+     */
+    public static function isValid(string $expression): bool
+    {
+        return CronExpression::isValidExpression($expression);
     }
 }
