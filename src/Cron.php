@@ -31,6 +31,14 @@ class Cron implements Frequency
     public function __construct(string $expression)
     {
         $this->cron = new CronExpression($expression);
+
+        if (! CronExpression::supportsAlias('@minutely')) {
+            CronExpression::registerAlias('@minutely', '* * * * *');
+        }
+
+        if (! CronExpression::supportsAlias('@quarterly')) {
+            CronExpression::registerAlias('@quarterly', '0 0 1 */3 *');
+        }
     }
 
     public function isDue(DateTime $dateTime = null): bool
