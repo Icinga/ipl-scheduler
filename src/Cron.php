@@ -90,4 +90,16 @@ class Cron implements Frequency
     {
         return $this->cron->getParts();
     }
+
+    /**
+     * Get whether the given cron expression is valid
+     *
+     * @param string $expression
+     *
+     * @return bool
+     */
+    public static function isValid(string $expression): bool
+    {
+        return CronExpression::isValidExpression($expression);
+    }
 }
