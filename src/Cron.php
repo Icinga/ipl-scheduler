@@ -6,6 +6,7 @@ use Cron\CronExpression;
 use DateTime;
 use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
+use ipl\Stdlib\Str;
 
 class Cron implements Frequency
 {
@@ -58,6 +59,61 @@ class Cron implements Frequency
     public function startAt(DateTime $start): Frequency
     {
         $this->start = $start;
+
+        $this->alignExpressionParts($start);
+
+        return $this;
+    }
+
+    /**
+     * Modify the expression parts based on the given date time
+     *
+     * @param DateTime $time
+     *
+     * @return $this
+     */
+    public function alignExpressionParts(DateTime $time): self
+    {
+        $expression = $this->cron->getExpression();
+        $aliases = CronExpression::getAliases();
+        if ($expression !== $aliases['@minutely']) {
+            $this->cron->setPart(static::PART_MINUTE, $time->format('i'));
+
+            $parts = Str::trimSplit($this->getPart(static::PART_HOUR), '/');
+            if ($parts[0] === '*' || $parts[0] === '0') {
+                $part = $time->format('H');
+                if (isset($parts[1]) && $parts[1] !== '1') {
+                    $part = $time->format('H') . '/' . $parts[1];
+                }
+
+                $this->cron->setPart(static::PART_HOUR, $part);
+            }
+
+            if ($expression !== $aliases['@daily']) {
+                $parts = Str::trimSplit($this->getPart(static::PART_DAY), '/');
+                if ($parts[0] === '*' || $parts[0] === '1') {
+                    $part = $time->format('j');
+                    if (isset($parts[1]) && $parts[1] !== '1') {
+                        $part = $time->format('j') . '/' . $parts[1];
+                    }
+
+                    $this->cron->setPart(static::PART_DAY, $part);
+                }
+
+                if ($expression !== $aliases['@monthly']) {
+                    $parts = Str::trimSplit($this->getPart(static::PART_MONTH), '/');
+                    if (! isset($parts[1]) && ($parts[0] === '*' || $parts[0] === '1')) {
+                        // Cron expression doesn't allow to run every N months on a specific month, which is fine
+                        $this->cron->setPart(static::PART_MONTH, $time->format('n'));
+                    }
+
+                    $weekDay = $this->getPart(static::PART_WEEKDAY);
+                    if ($weekDay === '*') {
+                        $this->cron->setPart(static::PART_WEEKDAY, $time->format('w'));
+                    }
+                }
+            }
+        }
 
         return $this;
     }
