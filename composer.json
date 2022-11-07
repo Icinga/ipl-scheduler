@@ -8,6 +8,7 @@
   "require": {
     "php": ">=7.2",
     "dragonmantank/cron-expression": "^3",
+    "cweagans/composer-patches": "~1.0",
     "psr/log": "^1",
     "ramsey/uuid": "^3",
     "react/event-loop": "^1",
