@@ -298,4 +298,19 @@ class SchedulerTest extends TestCase
         $this->assertEquals(1, $this->scheduler->countTimers());
         $this->assertEquals(1, $this->scheduler->countPromises($task->getUuid()));
     }
+
+    public function testAlreadyRejectedTaskErrorPropagation()
+    {
+        $this->expectNotToPerformAssertions();
+
+        // Won't work yet
+        $task = new PromiseBoundTask(Promise\reject(new TaskRejectedException()));
+        $task1 = new PromiseBoundTask(Promise\reject('Rejected!'));
+
+        $this->scheduler->schedule($task, new ImmediateDueFrequency());
+
+        $this->runAndStopEventLoop();
+
+        // Assert here
+    }
 }
