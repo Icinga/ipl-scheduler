@@ -21,6 +21,9 @@ class Cron implements Frequency
     /** @var DateTime Start time of this frequency */
     protected $start;
 
+    /** @var DateTime End time of this frequency */
+    protected $end;
+
     /**
      * Create frequency from the specified cron expression
      *
@@ -35,7 +38,7 @@ class Cron implements Frequency
 
     public function isDue(DateTime $dateTime): bool
     {
-        if ($dateTime < $this->start) {
+        if ($this->isExpired($dateTime) || $dateTime < $this->start) {
             return false;
         }
 
@@ -44,11 +47,20 @@ class Cron implements Frequency
 
     public function getNextDue(DateTime $dateTime): DateTime
     {
+        if ($this->isExpired($dateTime)) {
+            return $this->end;
+        }
+
         if ($dateTime < $this->start) {
             return $this->start;
         }
 
         return $this->cron->getNextRunDate($dateTime);
+    }
+
+    public function isExpired(DateTime $dateTime): bool
+    {
+        return $this->end !== null && $this->end < $dateTime;
     }
 
     /**
@@ -61,6 +73,20 @@ class Cron implements Frequency
     public function startAt(DateTime $start): self
     {
         $this->start = $start;
+
+        return $this;
+    }
+
+    /**
+     * Set the end time of this frequency
+     *
+     * @param DateTime $end
+     *
+     * @return $this
+     */
+    public function endAt(DateTime $end): Frequency
+    {
+        $this->end = $end;
 
         return $this;
     }

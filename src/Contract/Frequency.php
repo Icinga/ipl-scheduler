@@ -23,4 +23,13 @@ interface Frequency
      * @return DateTime
      */
     public function getNextDue(DateTime $dateTime): DateTime;
+
+    /**
+     * Get whether the specified time is beyond the frequency's expiry time
+     *
+     * @param DateTime $dateTime
+     *
+     * @return bool
+     */
+    public function isExpired(DateTime $dateTime): bool;
 }
