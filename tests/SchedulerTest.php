@@ -39,17 +39,18 @@ class SchedulerTest extends TestCase
     {
         $task = new PromiseBoundTask(Promise\resolve());
         $now = new DateTime();
+        $now->modify('+2 month');
 
         $nextDue = null;
         $this->scheduler
-            ->schedule($task, new AbsoluteDueFrequency($now))
             ->on(CountableScheduler::ON_TASK_SCHEDULED, function (Task $_, DateTime $time) use (&$nextDue) {
-                $nextDue = $time->getTimestamp();
-            });
+                $nextDue = $time;
+            })
+            ->schedule($task, new AbsoluteDueFrequency($now));
 
         $this->runOff();
 
-        $this->assertEquals($now->getTimestamp(), $nextDue, 'Scheduler could not get the correct schedule date time');
+        $this->assertEquals($now, $nextDue, 'Scheduler could not get the correct schedule date time');
     }
 
     public function testNeverDueTaskSchedules()
