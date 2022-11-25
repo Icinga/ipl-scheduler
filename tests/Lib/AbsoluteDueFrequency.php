@@ -6,7 +6,7 @@ use BadMethodCallException;
 use DateTime;
 use ipl\Scheduler\Contract\Frequency;
 
-class AbsoluteDueFrequency implements Frequency
+class AbsoluteDueFrequency extends BaseTestFrequency
 {
     /** @var DateTime */
     protected $dateTime;
@@ -24,10 +24,5 @@ class AbsoluteDueFrequency implements Frequency
     public function getNextDue(DateTime $dateTime): DateTime
     {
         return max($this->dateTime, $dateTime);
-    }
-
-    public function startAt(DateTime $start): Frequency
-    {
-        throw new BadMethodCallException('Not implemented');
     }
 }

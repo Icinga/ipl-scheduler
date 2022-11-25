@@ -6,7 +6,7 @@ use BadMethodCallException;
 use DateTime;
 use ipl\Scheduler\Contract\Frequency;
 
-class NeverDueFrequency implements Frequency
+class NeverDueFrequency extends BaseTestFrequency
 {
     public function isDue(DateTime $dateTime = null): bool
     {

@@ -6,6 +6,7 @@ use DateTime;
 use ipl\Scheduler\Contract\Task;
 use ipl\Tests\Scheduler\Lib\AbsoluteDueFrequency;
 use ipl\Tests\Scheduler\Lib\CountableScheduler;
+use ipl\Tests\Scheduler\Lib\ExpiringFrequency;
 use ipl\Tests\Scheduler\Lib\ImmediateDueFrequency;
 use ipl\Tests\Scheduler\Lib\NeverDueFrequency;
 use ipl\Tests\Scheduler\Lib\PromiseBoundTask;
@@ -217,5 +218,50 @@ class SchedulerTest extends TestCase
             $scheduler->countTimers(),
             'Scheduler::removeTasks() could not cancel and remove all scheduled timers'
         );
+    }
+
+    public function testSchedulingExpiredTask()
+    {
+        $task = new PromiseBoundTask(Promise\resolve());
+        $frequency = new ExpiringFrequency();
+        $frequency->endAt(new DateTime('-2 hours'));
+
+        $this->scheduler->schedule($task, $frequency);
+
+        $this->runOff();
+
+        $this->assertEquals(0, $this->scheduler->count(), 'Scheduler::schedule() has scheduled expired task');
+    }
+
+    public function testTaskIsDetachedAfterExpiring()
+    {
+        $deferred = new Promise\Deferred();
+        $frequency = new ExpiringFrequency();
+        $task = new PromiseBoundTask($deferred->promise());
+
+        $expireTime = new DateTime('+1 minute');
+        $frequency->endAt($expireTime);
+
+        $expiredAt = null;
+        $this->scheduler
+            ->on(CountableScheduler::ON_TASK_EXPIRED, function (Task $_, DateTime $expires) use (&$expiredAt) {
+                $expiredAt = $expires;
+            })
+            ->on(CountableScheduler::ON_TASK_RUN, function (Task $t, ExtendedPromiseInterface $_) use ($deferred, &$expireTime) {
+                // Make sure the next `getNextDue()` call returns the end time of the frequency
+                $expireTime->modify('-2 hours');
+
+                $timer = Loop::addTimer(0, function () use ($deferred, &$timer) {
+                    $deferred->resolve(0);
+
+                    Loop::cancelTimer($timer);
+                });
+            })
+            ->schedule($task, $frequency);
+
+        $this->runOff();
+
+        $this->assertEquals($expireTime, $expiredAt, 'Scheduler::schedule() could not get expected expire time');
+        $this->assertEquals(0, $this->scheduler->count(), 'Scheduler::schedule() could not remove expired task');
     }
 }
