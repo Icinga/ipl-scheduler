@@ -4,12 +4,12 @@ namespace ipl\Tests\Scheduler;
 
 use DateTime;
 use ipl\Scheduler\Contract\Task;
-use ipl\Tests\Scheduler\Mock\AbsoluteDueFrequency;
-use ipl\Tests\Scheduler\Mock\CountableScheduler;
-use ipl\Tests\Scheduler\Mock\ImmediateDueFrequency;
-use ipl\Tests\Scheduler\Mock\NeverDueFrequency;
-use ipl\Tests\Scheduler\Mock\PromiseBoundTask;
-use ipl\Tests\Scheduler\Mock\TaskRejectedException;
+use ipl\Tests\Scheduler\Lib\AbsoluteDueFrequency;
+use ipl\Tests\Scheduler\Lib\CountableScheduler;
+use ipl\Tests\Scheduler\Lib\ImmediateDueFrequency;
+use ipl\Tests\Scheduler\Lib\NeverDueFrequency;
+use ipl\Tests\Scheduler\Lib\PromiseBoundTask;
+use ipl\Tests\Scheduler\Lib\TaskRejectedException;
 use PHPUnit\Framework\TestCase;
 use React\EventLoop\Loop;
 use React\Promise;
