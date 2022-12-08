@@ -1,6 +1,6 @@
 <?php
 
-namespace ipl\Tests\Scheduler\Mock;
+namespace ipl\Tests\Scheduler\Lib;
 
 use ipl\Scheduler\Common\TaskProperties;
 use ipl\Scheduler\Contract\Task;

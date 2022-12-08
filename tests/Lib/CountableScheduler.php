@@ -1,6 +1,6 @@
 <?php
 
-namespace ipl\Tests\Scheduler\Mock;
+namespace ipl\Tests\Scheduler\Lib;
 
 use Countable;
 use ipl\Scheduler\Scheduler;
