@@ -38,3 +38,32 @@ jobs:
       - name: PHP CodeSniffer
         if: success() || matrix.allow_failure
         run: phpcs -wps --colors
+
+  test:
+    name: Unit tests with PHP ${{ matrix.php }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1' ]
+        os: [ 'ubuntu-latest' ]
+        include:
+          - php: '7.2'
+            PHPUNIT_VERSION: 8.5 # Latest PHPUnit version requires minimum PHP version 7.3
+
+    steps:
+      - name: Checkout code base
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: phpunit:${{ matrix.PHPUNIT_VERSION }}
+
+      - name: Setup dependencies
+        run: composer install -n --no-progress
+
+      - name: PHPUnit
+        run: phpunit --verbose
