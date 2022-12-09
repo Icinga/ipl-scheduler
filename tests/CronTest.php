@@ -61,11 +61,11 @@ class CronTest extends TestCase
     {
         $cron = new Cron('* * * * *');
 
-        $this->assertTrue($cron->isDue());
+        $this->assertTrue($cron->isDue(new DateTime()));
 
         $cron->startAt(new DateTime('+1 week'));
 
-        $this->assertFalse($cron->isDue());
+        $this->assertFalse($cron->isDue(new DateTime()));
     }
 
     public function testGetNextDueWithStartTime()
