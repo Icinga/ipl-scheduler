@@ -4,6 +4,7 @@ namespace ipl\Tests\Scheduler;
 
 use DateTime;
 use ipl\Scheduler\Contract\Task;
+use ipl\Scheduler\OneOff;
 use ipl\Tests\Scheduler\Lib\AbsoluteDueFrequency;
 use ipl\Tests\Scheduler\Lib\CountableScheduler;
 use ipl\Tests\Scheduler\Lib\ExpiringFrequency;
@@ -277,5 +278,25 @@ class SchedulerTest extends TestCase
         $this->assertEquals(0, $this->scheduler->count(), 'Scheduler::schedule() did not remove expired task');
         $this->assertEquals(0, $this->scheduler->countTimers());
         $this->assertEquals(0, $this->scheduler->countPromises($task->getUuid()));
+    }
+
+    public function testOneOffTasksRunOnlyOnce()
+    {
+        $hasRun = false;
+        $task = new PromiseBoundTask((new Promise\Deferred())->promise());
+
+        $this->scheduler
+            ->schedule($task, new OneOff(new DateTime('+1 milliseconds')))
+            ->on(CountableScheduler::ON_TASK_RUN, function (Task $t, ExtendedPromiseInterface $_) use (&$hasRun) {
+                $hasRun = true;
+            });
+
+        $this->runAndStopEventLoop();
+
+        $this->assertTrue($hasRun, 'Scheduler::schedule() did not run a task with one-off frequency');
+
+        $this->assertEquals(1, $this->scheduler->count());
+        $this->assertEquals(1, $this->scheduler->countTimers());
+        $this->assertEquals(1, $this->scheduler->countPromises($task->getUuid()));
     }
 }
