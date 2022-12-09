@@ -17,4 +17,9 @@ class NeverDueFrequency implements Frequency
     {
         return (new DateTime())->setTimestamp(PHP_INT_MAX);
     }
+
+    public function isExpired(DateTime $dateTime): bool
+    {
+        return false;
+    }
 }

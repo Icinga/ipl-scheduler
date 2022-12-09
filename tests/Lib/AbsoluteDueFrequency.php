@@ -21,6 +21,11 @@ class AbsoluteDueFrequency implements Frequency
         return $this->dateTime <= $dateTime;
     }
 
+    public function isExpired(DateTime $dateTime): bool
+    {
+        return  $dateTime > $this->dateTime;
+    }
+
     public function getNextDue(DateTime $dateTime): DateTime
     {
         return max($this->dateTime, $dateTime);
