@@ -16,7 +16,7 @@ class AbsoluteDueFrequency implements Frequency
         $this->dateTime = $dateTime;
     }
 
-    public function isDue(DateTime $dateTime = null): bool
+    public function isDue(DateTime $dateTime): bool
     {
         return $this->dateTime <= $dateTime;
     }
@@ -24,10 +24,5 @@ class AbsoluteDueFrequency implements Frequency
     public function getNextDue(DateTime $dateTime): DateTime
     {
         return max($this->dateTime, $dateTime);
-    }
-
-    public function startAt(DateTime $start): Frequency
-    {
-        throw new BadMethodCallException('Not implemented');
     }
 }

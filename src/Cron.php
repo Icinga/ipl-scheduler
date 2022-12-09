@@ -33,12 +33,8 @@ class Cron implements Frequency
         $this->cron = new CronExpression($expression);
     }
 
-    public function isDue(DateTime $dateTime = null): bool
+    public function isDue(DateTime $dateTime): bool
     {
-        if (! $dateTime) {
-            $dateTime = new DateTime();
-        }
-
         if ($dateTime < $this->start) {
             return false;
         }
@@ -55,7 +51,14 @@ class Cron implements Frequency
         return $this->cron->getNextRunDate($dateTime);
     }
 
-    public function startAt(DateTime $start): Frequency
+    /**
+     * Set the start time of this frequency
+     *
+     * @param DateTime $start
+     *
+     * @return $this
+     */
+    public function startAt(DateTime $start): self
     {
         $this->start = $start;
 
