@@ -5,7 +5,6 @@ namespace ipl\Tests\Scheduler;
 use DateTime;
 use ipl\Scheduler\Contract\Task;
 use ipl\Scheduler\OneOff;
-use ipl\Tests\Scheduler\Lib\AbsoluteDueFrequency;
 use ipl\Tests\Scheduler\Lib\CountableScheduler;
 use ipl\Tests\Scheduler\Lib\ExpiringFrequency;
 use ipl\Tests\Scheduler\Lib\ImmediateDueFrequency;
@@ -47,7 +46,7 @@ class SchedulerTest extends TestCase
             ->on(CountableScheduler::ON_TASK_SCHEDULED, function (Task $_, DateTime $time) use (&$scheduledAt) {
                 $scheduledAt = $time;
             })
-            ->schedule($task, new AbsoluteDueFrequency($nextDue));
+            ->schedule($task, new OneOff($nextDue));
 
         $this->runAndStopEventLoop();
 
@@ -214,7 +213,7 @@ class SchedulerTest extends TestCase
         $this->scheduler
             ->schedule($task1, new ImmediateDueFrequency())
             ->schedule($task2, new ImmediateDueFrequency())
-            ->schedule($task3, new AbsoluteDueFrequency(new DateTime('+1 milliseconds')));
+            ->schedule($task3, new OneOff(new DateTime('+1 milliseconds')));
 
         $this->runAndStopEventLoop();
 
