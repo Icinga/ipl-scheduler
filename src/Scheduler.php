@@ -210,21 +210,21 @@ class Scheduler
         }
 
         if ($frequency->isDue($now)) {
-            Loop::futureTick(function () use ($task) {
+            Loop::futureTick(function () use ($task): void {
                 $promise = $this->runTask($task);
                 $this->emit(static::ON_TASK_RUN, [$task, $promise]);
             });
             $this->emit(static::ON_TASK_SCHEDULED, [$task, $now]);
         }
 
-        $loop = function () use (&$loop, $task, $frequency) {
+        $loop = function () use (&$loop, $task, $frequency): void {
             $promise = $this->runTask($task);
             $this->emit(static::ON_TASK_RUN, [$task, $promise]);
 
             $now = new DateTime();
             $nextDue = $frequency->getNextDue($now);
             if ($frequency->isExpired($nextDue)) {
-                $removeTask = function () use ($task, $nextDue) {
+                $removeTask = function () use ($task, $nextDue): void {
                     $this->remove($task);
                     $this->emit(static::ON_TASK_EXPIRED, [$task, $nextDue]);
                 };
@@ -304,13 +304,13 @@ class Scheduler
         $this->addPromise($task->getUuid(), $promise);
 
         return $promise->then(
-            function ($result) use ($task) {
+            function ($result) use ($task): void {
                 $this->emit(self::ON_TASK_DONE, [$task, $result]);
             },
-            function (Throwable $reason) use ($task) {
+            function (Throwable $reason) use ($task): void {
                 $this->emit(self::ON_TASK_FAILED, [$task, $reason]);
             }
-        )->always(function () use ($task, $promise) {
+        )->always(function () use ($task, $promise): void {
             // Unregister the promise without canceling it as it's already resolved
             $this->removePromise($task->getUuid(), $promise);
         });
