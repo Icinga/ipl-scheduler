@@ -2,7 +2,7 @@
 
 namespace ipl\Tests\Scheduler\Lib;
 
-use DateTime;
+use DateTimeInterface;
 use ipl\Scheduler\Contract\Frequency;
 
 class ExpiringFrequency implements Frequency
@@ -10,15 +10,15 @@ class ExpiringFrequency implements Frequency
     /** @var bool */
     protected $expired = false;
 
-    /** @var DateTime */
+    /** @var DateTimeInterface */
     protected $end;
 
-    public function isDue(DateTime $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime): bool
     {
         return true;
     }
 
-    public function getNextDue(DateTime $dateTime): DateTime
+    public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
         if ($this->isExpired($dateTime)) {
             return $this->end;
@@ -27,7 +27,7 @@ class ExpiringFrequency implements Frequency
         return $dateTime;
     }
 
-    public function isExpired(DateTime $dateTime): bool
+    public function isExpired(DateTimeInterface $dateTime): bool
     {
         return $this->expired;
     }
@@ -39,7 +39,7 @@ class ExpiringFrequency implements Frequency
         return $this;
     }
 
-    public function endAt(DateTime $dateTime): self
+    public function endAt(DateTimeInterface $dateTime): self
     {
         $this->end = $dateTime;
 
