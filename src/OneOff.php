@@ -22,11 +22,7 @@ class OneOff implements Frequency
 
     public function getNextDue(DateTime $dateTime): DateTime
     {
-        if ($this->isExpired($dateTime) || $this->dateTime > $dateTime) {
-            return $this->dateTime;
-        }
-
-        return $dateTime;
+        return $this->dateTime;
     }
 
     public function isExpired(DateTime $dateTime): bool

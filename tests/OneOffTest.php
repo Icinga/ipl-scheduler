@@ -22,7 +22,6 @@ class OneOffTest extends TestCase
         $now = new DateTime();
         $oneOff = new OneOff($now);
 
-        $this->assertSame($now, $oneOff->getNextDue($now));
         $this->assertEquals($now, $oneOff->getNextDue(clone $now));
     }
 
