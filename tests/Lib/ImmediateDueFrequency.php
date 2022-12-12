@@ -17,4 +17,9 @@ class ImmediateDueFrequency implements Frequency
     {
         return $dateTime;
     }
+
+    public function isExpired(DateTime $dateTime): bool
+    {
+        return false;
+    }
 }

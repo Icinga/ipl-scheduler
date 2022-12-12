@@ -10,6 +10,7 @@ use ipl\Scheduler\Contract\Frequency;
 use ipl\Scheduler\Contract\Task;
 use ipl\Stdlib\Events;
 use React\EventLoop\Loop;
+use React\Promise;
 use React\Promise\ExtendedPromiseInterface;
 use SplObjectStorage;
 use Throwable;
@@ -106,6 +107,23 @@ class Scheduler
      */
     public const ON_TASK_RUN = 'task-run';
 
+    /**
+     * Event raised when a {@see Task task} is expired
+     *
+     * The task and the {@see DateTime expire time} are passed as parameters to the event callbacks.
+     * Note that the expiration time is the first time that is considered expired based on the frequency
+     * of the task and can be later than the specified end time.
+     *
+     * **Example usage:**
+     *
+     * ```php
+     * $scheduler->on(Scheduler::ON_TASK_EXPIRED, function (Task $task, DateTime $dateTime) use ($logger) {
+     *     $logger->info(sprintf('Removing expired task %s at %s', $task->getName(), $dateTime->format('Y-m-d H:i:s')));
+     * });
+     * ```
+     */
+    public const ON_TASK_EXPIRED = 'task-expired';
+
     /** @var SplObjectStorage The scheduled tasks of this scheduler */
     protected $tasks;
 
@@ -187,6 +205,10 @@ class Scheduler
     public function schedule(Task $task, Frequency $frequency): self
     {
         $now = new DateTime();
+        if ($frequency->isExpired($now)) {
+            return $this;
+        }
+
         if ($frequency->isDue($now)) {
             Loop::futureTick(function () use ($task) {
                 $promise = $this->runTask($task);
@@ -201,6 +223,22 @@ class Scheduler
 
             $now = new DateTime();
             $nextDue = $frequency->getNextDue($now);
+            if ($frequency->isExpired($nextDue)) {
+                $removeTask = function () use ($task, $nextDue) {
+                    $this->remove($task);
+                    $this->emit(static::ON_TASK_EXPIRED, [$task, $nextDue]);
+                };
+
+                if ($this->promises->contains($task->getUuid())) {
+                    $pendingPromises = (array) $this->promises->offsetGet($task->getUuid());
+                    Promise\all($pendingPromises)->always($removeTask);
+                } else {
+                    $removeTask();
+                }
+
+                return;
+            }
+
             $this->attachTimer(
                 $task->getUuid(),
                 Loop::addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop)
@@ -225,9 +263,10 @@ class Scheduler
         $events = array_flip([
             static::ON_TASK_CANCEL,
             static::ON_TASK_DONE,
+            static::ON_TASK_EXPIRED,
             static::ON_TASK_FAILED,
-            static::ON_TASK_SCHEDULED,
-            static::ON_TASK_RUN
+            static::ON_TASK_RUN,
+            static::ON_TASK_SCHEDULED
         ]);
 
         return isset($events[$event]);
@@ -257,7 +296,7 @@ class Scheduler
      *
      * @param Task $task
      *
-     * @return void
+     * @return ExtendedPromiseInterface
      */
     protected function runTask(Task $task): ExtendedPromiseInterface
     {

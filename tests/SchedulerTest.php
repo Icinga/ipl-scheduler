@@ -6,6 +6,7 @@ use DateTime;
 use ipl\Scheduler\Contract\Task;
 use ipl\Tests\Scheduler\Lib\AbsoluteDueFrequency;
 use ipl\Tests\Scheduler\Lib\CountableScheduler;
+use ipl\Tests\Scheduler\Lib\ExpiringFrequency;
 use ipl\Tests\Scheduler\Lib\ImmediateDueFrequency;
 use ipl\Tests\Scheduler\Lib\NeverDueFrequency;
 use ipl\Tests\Scheduler\Lib\PromiseBoundTask;
@@ -224,5 +225,57 @@ class SchedulerTest extends TestCase
         $this->assertEquals(0, $this->scheduler->countPromises($task1->getUuid()));
         $this->assertEquals(0, $this->scheduler->countPromises($task2->getUuid()));
         $this->assertEquals(1, $this->scheduler->countPromises($task3->getUuid()));
+    }
+
+    public function testDoesNotScheduleExpiredTasks()
+    {
+        $task = new PromiseBoundTask(Promise\resolve());
+        $frequency = new ExpiringFrequency();
+        $frequency->setExpired();
+
+        $this->scheduler->schedule($task, $frequency);
+
+        $this->runAndStopEventLoop();
+
+        $this->assertEquals(0, $this->scheduler->count(), 'Scheduler::schedule() has scheduled expired task');
+        $this->assertEquals(0, $this->scheduler->countTimers());
+        $this->assertEquals(0, $this->scheduler->countPromises($task->getUuid()));
+    }
+
+    public function testTaskIsDetachedAfterExpiring()
+    {
+        $deferred = new Promise\Deferred();
+        $frequency = new ExpiringFrequency();
+        $task = new PromiseBoundTask($deferred->promise());
+
+        $expireTime = new DateTime();
+        $frequency->endAt($expireTime);
+
+        $expiredAt = null;
+        $this->scheduler
+            ->on(CountableScheduler::ON_TASK_EXPIRED, function (Task $_, DateTime $expires) use (&$expiredAt) {
+                $expiredAt = $expires;
+            })
+            ->on(
+                CountableScheduler::ON_TASK_RUN,
+                function (Task $t, ExtendedPromiseInterface $_) use ($deferred, $frequency) {
+                    $frequency->setExpired();
+
+                    $timer = Loop::addTimer(0, function () use ($deferred, &$timer) {
+                        $deferred->resolve(0);
+
+                        Loop::cancelTimer($timer);
+                    });
+                }
+            )
+            ->schedule($task, $frequency);
+
+        $this->runAndStopEventLoop();
+
+        $this->assertEquals($expireTime, $expiredAt, 'Scheduler::schedule() did not get expected expire time');
+
+        $this->assertEquals(0, $this->scheduler->count(), 'Scheduler::schedule() did not remove expired task');
+        $this->assertEquals(0, $this->scheduler->countTimers());
+        $this->assertEquals(0, $this->scheduler->countPromises($task->getUuid()));
     }
 }

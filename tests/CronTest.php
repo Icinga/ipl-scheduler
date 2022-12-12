@@ -68,6 +68,14 @@ class CronTest extends TestCase
         $this->assertFalse($cron->isDue(new DateTime()));
     }
 
+    public function testIsDueWithEndTime()
+    {
+        $cron = new Cron('* * * * *');
+        $cron->endAt(new DateTime('-1 week'));
+
+        $this->assertFalse($cron->isDue(new DateTime()));
+    }
+
     public function testGetNextDueWithStartTime()
     {
         $cron = new Cron('* * * * *');
@@ -78,5 +86,28 @@ class CronTest extends TestCase
         $cron->startAt($now);
 
         $this->assertEquals((clone $now)->modify('+1 minute'), $cron->getNextDue($now));
+    }
+
+    public function testGetNextDueWithEndTime()
+    {
+        $cron = new Cron('* * * * *');
+        $now = new DateTime();
+
+        $cron->endAt($now);
+
+        $this->assertEquals($now, $cron->getNextDue(new DateTime('+2 hours')));
+    }
+
+    public function testIsExpiredWithoutEndTime()
+    {
+        $this->assertFalse((new Cron('* * * * *'))->isExpired(new DateTime()));
+    }
+
+    public function testIsExpiredWithEndTime()
+    {
+        $cron = new Cron('* * * * *');
+        $cron->endAt(new DateTime('-2 hours'));
+
+        $this->assertTrue($cron->isExpired(new DateTime()));
     }
 }
