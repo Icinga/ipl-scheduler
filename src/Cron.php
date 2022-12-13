@@ -6,6 +6,7 @@ use Cron\CronExpression;
 use DateTime;
 use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
+use ipl\Stdlib\Str;
 
 class Cron implements Frequency
 {
@@ -55,7 +56,7 @@ class Cron implements Frequency
             return $this->start;
         }
 
-        return $this->cron->getNextRunDate($dateTime);
+        return $this->getNextRunDate($dateTime);
     }
 
     public function isExpired(DateTime $dateTime): bool
@@ -130,5 +131,105 @@ class Cron implements Frequency
     public static function isValid(string $expression): bool
     {
         return CronExpression::isValidExpression($expression);
+    }
+
+    protected function getNextRunDate(DateTime $dateTime)
+    {
+        $nextDue = $this->cron->getNextRunDate($dateTime);
+        if ($this->start === null) {
+            return $nextDue;
+        }
+
+        $hours = $nextDue->format('H');
+        $minutes = $nextDue->format('i');
+        $seconds = $this->start->format('s');
+
+        $expression = $this->cron->getExpression();
+        $aliases = CronExpression::getAliases();
+        if ($expression !== $aliases['@minutely']) {
+            $minutes = $this->start->format('i');
+
+            if ($expression !== $aliases['@hourly']) {
+                $hours = $this->start->format('H');
+
+                if ($expression !== $aliases['@daily']) {
+                    $weekday = $this->getPart(static::PART_WEEKDAY);
+                    $dayPart = $this->getPart(static::PART_DAY);
+                    $monthPart = $this->getPart(static::PART_MONTH);
+                    $weeklyRange = strpos($weekday, ',') !== false;
+
+                    if (! $this->isOrdinal() && (! $weeklyRange || strpos($dayPart, ',') === false)) {
+                        $dayPart = Str::trimSplit($dayPart, '/');
+                        if (
+                            ! $weeklyRange
+                            && $expression === $aliases['@weekly']
+                            || (
+                                ! isset($dayPart[1])
+                                && $monthPart === '*'
+                                && $weekday === '*'
+                            )
+                        ) {
+                            // If there is no a specific weekday selected, or it's an aliased
+                            // weekly expression we can just forward to next day specified
+                            // with the start time.
+                            $nextDue->modify("next {$this->start->format('D')}");
+                        }
+
+                        $hourParts = Str::trimSplit($this->getPart(static::PART_HOUR), '/');
+                        $isHourlyRange = isset($hourParts[1]);
+                        if ($isHourlyRange && (int) $hourParts[1] > 24) {
+                            $weeks = ($hourParts[1] / 7 / 24) - 1;
+                            $nextDue->modify("+{$weeks} weeks");
+                        }
+
+                        if (
+                            ! $isHourlyRange
+                            && ! isset($dayPart[1])
+                            && $weekday === '*'
+                            && (
+                                $expression === $aliases['@quarterly']
+                                || $expression === $aliases['@annually']
+                                || strpos($monthPart, '/') === false
+                            )
+                            && (
+                                $dayPart[0] === '*'
+                                || $dayPart[0] === '1'
+                            )
+                        ) {
+                            $day = $this->start->format('j');
+                            $nextDue->setDate($nextDue->format('Y'), $nextDue->format('m'), $day);
+                        }
+                    }
+                }
+            }
+        }
+
+        $nextDue->setTime($hours, $minutes, $seconds);
+
+        return $nextDue;
+    }
+
+    /**
+     * Get whether this cron has a specific day/weekday.. selected
+     *
+     * @return bool
+     */
+    protected function isOrdinal(): bool
+    {
+        $day = $this->getPart(static::PART_DAY);
+        $weekday = $this->getPart(static::PART_WEEKDAY);
+        if ((int) $day >= 1 && $weekday === '?') { // On the first/second/third... day
+            return true;
+        }
+
+        if ($day === '?' && strpos($weekday, '#') !== false) { // On the first/second/third.. monday
+            return true;
+        }
+
+        if (strpos($weekday, 'W') && $weekday === '*') { // On the first/second/third.. weekday
+            return true;
+        }
+
+        return strpos($weekday, 'L') !== false && $day === '?' || ($day === 'L' && $weekday === '*');
     }
 }
