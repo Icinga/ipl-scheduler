@@ -215,6 +215,12 @@ class Scheduler
                 $this->emit(static::ON_TASK_RUN, [$task, $promise]);
             });
             $this->emit(static::ON_TASK_SCHEDULED, [$task, $now]);
+
+            if ($frequency instanceof OneOff) {
+                // One-time tasks are, as the name implies, a one-time job, so no need
+                // to continue here as we have already scheduled the task just once!
+                return $this;
+            }
         }
 
         $loop = function () use (&$loop, $task, $frequency) {
@@ -223,7 +229,7 @@ class Scheduler
 
             $now = new DateTime();
             $nextDue = $frequency->getNextDue($now);
-            if ($frequency->isExpired($nextDue)) {
+            if ($frequency instanceof OneOff || $frequency->isExpired($nextDue)) {
                 $removeTask = function () use ($task, $nextDue) {
                     $this->remove($task);
                     $this->emit(static::ON_TASK_EXPIRED, [$task, $nextDue]);

@@ -261,7 +261,7 @@ class SchedulerTest extends TestCase
                 function (Task $t, ExtendedPromiseInterface $_) use ($deferred, $frequency) {
                     $frequency->setExpired();
 
-                    $timer = Loop::addTimer(0, function () use ($deferred, &$timer) {
+                    Loop::addTimer(0.0, function ($timer) use ($deferred) {
                         $deferred->resolve(0);
 
                         Loop::cancelTimer($timer);
@@ -281,18 +281,25 @@ class SchedulerTest extends TestCase
 
     public function testOneOffTasksRunOnlyOnce()
     {
-        $hasRun = false;
+        $countRuns = 0;
         $task = new PromiseBoundTask((new Promise\Deferred())->promise());
-
         $this->scheduler
             ->schedule($task, new OneOff(new DateTime('+1 milliseconds')))
-            ->on(CountableScheduler::ON_TASK_RUN, function (Task $t, ExtendedPromiseInterface $_) use (&$hasRun) {
-                $hasRun = true;
+            ->on(CountableScheduler::ON_TASK_RUN, function (Task $t, ExtendedPromiseInterface $_) use (&$countRuns) {
+                $countRuns += 1;
             });
 
-        $this->runAndStopEventLoop();
+        // Since tick callbacks are guaranteed to be executed in the order they are enqueued, the event
+        // loop will be stopped before the task tick callbacks registered by the scheduler are executed.
+        // Hence, we wouldn't find out whether one-off tasks are actually run only once, so we have to ensure
+        // that the callback registered to stop the event loop doesn't block the others from being enqueued.
+        Loop::addTimer(0.1, function () {
+            Loop::stop();
+        });
 
-        $this->assertTrue($hasRun, 'Scheduler::schedule() did not run a task with one-off frequency');
+        Loop::run();
+
+        $this->assertEquals(1, $countRuns, 'Scheduler::schedule() did not run a task with one-off frequency only once');
 
         $this->assertEquals(1, $this->scheduler->count());
         $this->assertEquals(1, $this->scheduler->countTimers());
