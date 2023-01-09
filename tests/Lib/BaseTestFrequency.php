@@ -33,6 +33,7 @@ abstract class BaseTestFrequency implements Frequency
         throw new LogicException('Not implemented');
     }
 
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         throw new LogicException('Not implemented');
