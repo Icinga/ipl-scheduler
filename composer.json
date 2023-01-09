@@ -6,15 +6,11 @@
   "homepage": "https://github.com/Icinga/ipl-scheduler",
   "license": "MIT",
   "config": {
-    "sort-packages": true,
-    "allow-plugins": {
-      "cweagans/composer-patches": true
-    }
+    "sort-packages": true
   },
   "require": {
     "php": ">=7.2",
     "dragonmantank/cron-expression": "^3",
-    "cweagans/composer-patches": "~1.0",
     "psr/log": "^1",
     "ramsey/uuid": "^3",
     "react/event-loop": "^1",
@@ -30,14 +26,6 @@
   "autoload-dev": {
     "psr-4": {
       "ipl\\Tests\\Scheduler\\": "tests"
-    }
-  },
-  "extra": {
-    "composer-exit-on-patch-failure": true,
-    "patches": {
-      "ramsey/uuid": {
-        "Uuid: Support 8.1": "patches/ramsey_uuid_php81.patch"
-      }
     }
   }
 }
