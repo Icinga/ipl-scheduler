@@ -182,6 +182,13 @@ class RRule implements Frequency
         // generate meaningless "732" recurrences each time by default
         $config = new ArrayTransformerConfig();
         $config->setVirtualLimit($limit);
+
+        // If the run day isn't set explicitly, we can enable the last day of month
+        // fix, so that it doesn't skip some months which doesn't have e.g. 29,30,31 days.
+        if ($this->getRepeat() === static::MONTHLY && ! $this->rrule->getByDay() && ! $this->rrule->getByMonthDay()) {
+            $config->enableLastDayOfMonthFix();
+        }
+
         $this->transformer->setConfig($config);
 
         return $this;

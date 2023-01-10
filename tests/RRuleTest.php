@@ -93,4 +93,14 @@ class RRuleTest extends TestCase
 
         $this->assertCount(5, iterator_to_array($rrule->getNextRecurrences(new DateTime())));
     }
+
+    public function testMonthlyOn31DoesNotSkippFebruaryAndOtherMonths()
+    {
+        $start = new DateTime('January 31');
+        $rrule = new RRule('FREQ=MONTHLY', $start);
+        $recurrences = $rrule->getNextRecurrences($start);
+        $recurrences->next();
+
+        $this->assertEquals(new DateTime('February 28'), $recurrences->current());
+    }
 }
