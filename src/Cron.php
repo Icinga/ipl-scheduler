@@ -72,7 +72,7 @@ class Cron implements Frequency
      */
     public function startAt(DateTimeInterface $start): self
     {
-        $this->start = $start;
+        $this->start = clone $start;
 
         return $this;
     }
@@ -86,7 +86,7 @@ class Cron implements Frequency
      */
     public function endAt(DateTimeInterface $end): Frequency
     {
-        $this->end = $end;
+        $this->end = clone $end;
 
         return $this;
     }
