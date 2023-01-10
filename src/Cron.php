@@ -3,7 +3,7 @@
 namespace ipl\Scheduler;
 
 use Cron\CronExpression;
-use DateTime;
+use DateTimeInterface;
 use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
 
@@ -18,10 +18,10 @@ class Cron implements Frequency
     /** @var CronExpression */
     protected $cron;
 
-    /** @var DateTime Start time of this frequency */
+    /** @var DateTimeInterface Start time of this frequency */
     protected $start;
 
-    /** @var DateTime End time of this frequency */
+    /** @var DateTimeInterface End time of this frequency */
     protected $end;
 
     /**
@@ -36,7 +36,7 @@ class Cron implements Frequency
         $this->cron = new CronExpression($expression);
     }
 
-    public function isDue(DateTime $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime): bool
     {
         if ($this->isExpired($dateTime) || $dateTime < $this->start) {
             return false;
@@ -45,7 +45,7 @@ class Cron implements Frequency
         return $this->cron->isDue($dateTime);
     }
 
-    public function getNextDue(DateTime $dateTime): DateTime
+    public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
         if ($this->isExpired($dateTime)) {
             return $this->end;
@@ -58,7 +58,7 @@ class Cron implements Frequency
         return $this->cron->getNextRunDate($dateTime);
     }
 
-    public function isExpired(DateTime $dateTime): bool
+    public function isExpired(DateTimeInterface $dateTime): bool
     {
         return $this->end !== null && $this->end < $dateTime;
     }
@@ -66,13 +66,13 @@ class Cron implements Frequency
     /**
      * Set the start time of this frequency
      *
-     * @param DateTime $start
+     * @param DateTimeInterface $start
      *
      * @return $this
      */
-    public function startAt(DateTime $start): self
+    public function startAt(DateTimeInterface $start): self
     {
-        $this->start = $start;
+        $this->start = clone $start;
 
         return $this;
     }
@@ -80,13 +80,13 @@ class Cron implements Frequency
     /**
      * Set the end time of this frequency
      *
-     * @param DateTime $end
+     * @param DateTimeInterface $end
      *
      * @return $this
      */
-    public function endAt(DateTime $end): Frequency
+    public function endAt(DateTimeInterface $end): Frequency
     {
-        $this->end = $end;
+        $this->end = clone $end;
 
         return $this;
     }

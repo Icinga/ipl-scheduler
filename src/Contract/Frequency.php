@@ -2,34 +2,34 @@
 
 namespace ipl\Scheduler\Contract;
 
-use DateTime;
+use DateTimeInterface;
 
 interface Frequency
 {
     /**
      * Get whether the frequency is due at the specified time
      *
-     * @param DateTime $dateTime
+     * @param DateTimeInterface $dateTime
      *
      * @return bool
      */
-    public function isDue(DateTime $dateTime): bool;
+    public function isDue(DateTimeInterface $dateTime): bool;
 
     /**
      * Get the next due date relative to the given time
      *
-     * @param DateTime $dateTime
+     * @param DateTimeInterface $dateTime
      *
-     * @return DateTime
+     * @return DateTimeInterface
      */
-    public function getNextDue(DateTime $dateTime): DateTime;
+    public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface;
 
     /**
      * Get whether the specified time is beyond the frequency's expiry time
      *
-     * @param DateTime $dateTime
+     * @param DateTimeInterface $dateTime
      *
      * @return bool
      */
-    public function isExpired(DateTime $dateTime): bool;
+    public function isExpired(DateTimeInterface $dateTime): bool;
 }

@@ -3,6 +3,7 @@
 namespace ipl\Scheduler;
 
 use DateTime;
+use DateTimeInterface;
 use ipl\Scheduler\Contract\Frequency;
 
 class OneOff implements Frequency
@@ -15,17 +16,17 @@ class OneOff implements Frequency
         $this->dateTime = clone $dateTime;
     }
 
-    public function isDue(DateTime $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime): bool
     {
         return ! $this->isExpired($dateTime) && $this->dateTime == $dateTime;
     }
 
-    public function getNextDue(DateTime $dateTime): DateTime
+    public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
         return $this->dateTime;
     }
 
-    public function isExpired(DateTime $dateTime): bool
+    public function isExpired(DateTimeInterface $dateTime): bool
     {
         return $this->dateTime < $dateTime;
     }
