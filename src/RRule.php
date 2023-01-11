@@ -11,7 +11,6 @@ use Recurr\Rule as RecurrRule;
 use Recurr\Transformer\ArrayTransformer;
 use Recurr\Transformer\ArrayTransformerConfig;
 use Recurr\Transformer\Constraint\AfterConstraint;
-use Recurr\Transformer\Constraint\BetweenConstraint;
 
 use function ipl\Stdlib\get_php_type;
 
@@ -86,12 +85,14 @@ class RRule implements Frequency
 
     public function isExpired(DateTime $dateTime): bool
     {
-        $end = $this->rrule->getEndDate();
-        if (! $end || $end == $this->rrule->getStartDate()) {
+        if ($this->rrule->repeatsIndefinitely()) {
             return false;
         }
 
-        return $end < $dateTime;
+        $end = $this->rrule->getEndDate();
+        $end = $end ?: $this->rrule->getUntil();
+
+        return $end !== null && $end < $dateTime;
     }
 
     /**
@@ -166,17 +167,11 @@ class RRule implements Frequency
      */
     public function getNextRecurrences(DateTimeInterface $dateTime, bool $include = true): Generator
     {
-        if (! $this->rrule->getEndDate()) {
-            $constraint = new AfterConstraint($dateTime, $include);
-        } else {
-            $constraint = new BetweenConstraint($dateTime, $this->rrule->getEndDate(), $include);
-        }
-
         // Setting the start date to a date time smaller than now causes the underlying library
         // not to generate any recurrences when using the regular frequencies such as `MINUTELY` etc.
         // and the `$countConstraintFailures` is set to true. We need also to tell the transformer
         // not to count the recurrences that fail the constraint's test!
-        $recurrences = $this->transformer->transform($this->rrule, $constraint, false);
+        $recurrences = $this->transformer->transform($this->rrule, new AfterConstraint($dateTime, $include), false);
         foreach ($recurrences as $recurrence) {
             yield $recurrence->getStart();
         }
