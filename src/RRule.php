@@ -38,6 +38,9 @@ class RRule implements Frequency
     /** @var string Run once a minute */
     public const MINUTELY = 'MINUTELY';
 
+    /** @var int Maximum time difference between the current date and the start date in years */
+    public const MAX_YEAR_DIFF = -5;
+
     /** @var RecurrRule */
     protected $rrule;
 
@@ -104,6 +107,16 @@ class RRule implements Frequency
         // When the start time contains microseconds, the first recurrence will always be skipped, as
         // the transformer operates only up to seconds level. See also the upstream issue #155
         $startDate->setTime($start->format('H'), $start->format('i'), $start->format('s'));
+
+        $now = new DateTime();
+        $diff = (int) $now->diff($startDate)->format('%R%y');
+        // The maximum time difference between the current time and the start time must not exceed 5 years,
+        // otherwise the transformer would spend forever generating all the recurrences from the start time
+        // till now pointlessly.
+        if ($diff < static::MAX_YEAR_DIFF) {
+            $startDate->setDate($now->format('Y'), $start->format('m'), $start->format('d'));
+        }
+
         $this->rrule->setStartDate($startDate, true);
 
         return $this;
