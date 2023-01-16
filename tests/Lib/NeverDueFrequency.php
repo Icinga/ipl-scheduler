@@ -2,23 +2,23 @@
 
 namespace ipl\Tests\Scheduler\Lib;
 
-use BadMethodCallException;
 use DateTime;
+use DateTimeInterface;
 use ipl\Scheduler\Contract\Frequency;
 
 class NeverDueFrequency implements Frequency
 {
-    public function isDue(DateTime $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime): bool
     {
         return false;
     }
 
-    public function getNextDue(DateTime $dateTime): DateTime
+    public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
         return (new DateTime())->setTimestamp(PHP_INT_MAX);
     }
 
-    public function isExpired(DateTime $dateTime): bool
+    public function isExpired(DateTimeInterface $dateTime): bool
     {
         return false;
     }

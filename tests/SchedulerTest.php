@@ -29,7 +29,7 @@ class SchedulerTest extends TestCase
 
     protected function runAndStopEventLoop()
     {
-        Loop::futureTick(function () {
+        Loop::futureTick(function (): void {
             Loop::stop();
         });
 
@@ -43,7 +43,7 @@ class SchedulerTest extends TestCase
 
         $scheduledAt = null;
         $this->scheduler
-            ->on(CountableScheduler::ON_TASK_SCHEDULED, function (Task $_, DateTime $time) use (&$scheduledAt) {
+            ->on(CountableScheduler::ON_TASK_SCHEDULED, function (Task $_, DateTime $time) use (&$scheduledAt): void {
                 $scheduledAt = $time;
             })
             ->schedule($task, new OneOff($nextDue));
@@ -63,9 +63,12 @@ class SchedulerTest extends TestCase
         $task = new PromiseBoundTask(Promise\resolve());
         $this->scheduler
             ->schedule($task, new NeverDueFrequency())
-            ->on(CountableScheduler::ON_TASK_RUN, function (Task $_, ExtendedPromiseInterface $p) use (&$neverRun) {
-                $neverRun = false;
-            });
+            ->on(
+                CountableScheduler::ON_TASK_RUN,
+                function (Task $_, ExtendedPromiseInterface $p) use (&$neverRun): void {
+                    $neverRun = false;
+                }
+            );
 
         $this->runAndStopEventLoop();
 
@@ -82,9 +85,12 @@ class SchedulerTest extends TestCase
         $task = new PromiseBoundTask(Promise\resolve());
         $this->scheduler
             ->schedule($task, new ImmediateDueFrequency())
-            ->on(CountableScheduler::ON_TASK_RUN, function (Task $t, ExtendedPromiseInterface $_) use (&$hasRun) {
-                $hasRun = true;
-            });
+            ->on(
+                CountableScheduler::ON_TASK_RUN,
+                function (Task $t, ExtendedPromiseInterface $_) use (&$hasRun): void {
+                    $hasRun = true;
+                }
+            );
 
         $this->runAndStopEventLoop();
 
@@ -101,14 +107,17 @@ class SchedulerTest extends TestCase
         $task = new PromiseBoundTask((new Promise\Deferred())->promise());
         $this->scheduler
             ->schedule($task, new ImmediateDueFrequency())
-            ->on(CountableScheduler::ON_TASK_CANCEL, function (Task $_, array $promises) use (&$canceledPromises) {
-                $canceledPromises = $promises;
-            });
+            ->on(
+                CountableScheduler::ON_TASK_CANCEL,
+                function (Task $_, array $promises) use (&$canceledPromises): void {
+                    $canceledPromises = $promises;
+                }
+            );
 
         // Tick callbacks are guaranteed to be executed in the order they are enqueued,
         // thus we will not be able to remove the task before it is finished. Therefore,
         // we need to use timers with 0 intervals.
-        Loop::addTimer(0, function () use ($task) {
+        Loop::addTimer(0, function () use ($task): void {
             $this->scheduler->remove($task);
         });
 
@@ -133,11 +142,14 @@ class SchedulerTest extends TestCase
         $task = new PromiseBoundTask((new Promise\Deferred())->promise());
         $this->scheduler
             ->schedule($task, new NeverDueFrequency())
-            ->on(CountableScheduler::ON_TASK_CANCEL, function (Task $_, array $promises) use (&$canceledPromises) {
-                $canceledPromises = $promises;
-            });
+            ->on(
+                CountableScheduler::ON_TASK_CANCEL,
+                function (Task $_, array $promises) use (&$canceledPromises): void {
+                    $canceledPromises = $promises;
+                }
+            );
 
-        Loop::futureTick(function () use ($task) {
+        Loop::futureTick(function () use ($task): void {
             $this->scheduler->remove($task);
         });
 
@@ -158,13 +170,19 @@ class SchedulerTest extends TestCase
         $task = new PromiseBoundTask($deferred->promise());
         $this->scheduler
             ->schedule($task, new ImmediateDueFrequency())
-            ->on(CountableScheduler::ON_TASK_RUN, function (Task $_, ExtendedPromiseInterface $p) use ($deferred) {
-                $deferred->reject(new TaskRejectedException('rejected'));
-            })
-            ->on(CountableScheduler::ON_TASK_FAILED, function (Task $t, Throwable $err) use (&$taskFailed, &$reason) {
-                $taskFailed = true;
-                $reason = $err;
-            });
+            ->on(
+                CountableScheduler::ON_TASK_RUN,
+                function (Task $_, ExtendedPromiseInterface $p) use ($deferred): void {
+                    $deferred->reject(new TaskRejectedException('rejected'));
+                }
+            )
+            ->on(
+                CountableScheduler::ON_TASK_FAILED,
+                function (Task $t, Throwable $err) use (&$taskFailed, &$reason): void {
+                    $taskFailed = true;
+                    $reason = $err;
+                }
+            );
 
         $this->runAndStopEventLoop();
 
@@ -186,13 +204,19 @@ class SchedulerTest extends TestCase
         $task = new PromiseBoundTask($deferred->promise());
         $this->scheduler
             ->schedule($task, new ImmediateDueFrequency())
-            ->on(CountableScheduler::ON_TASK_RUN, function (Task $_, ExtendedPromiseInterface $p) use ($deferred) {
-                $deferred->resolve(10);
-            })
-            ->on(CountableScheduler::ON_TASK_DONE, function (Task $_, $result) use (&$taskFulFilled, &$returnResult) {
-                $taskFulFilled = true;
-                $returnResult = $result;
-            });
+            ->on(
+                CountableScheduler::ON_TASK_RUN,
+                function (Task $_, ExtendedPromiseInterface $p) use ($deferred): void {
+                    $deferred->resolve(10);
+                }
+            )
+            ->on(
+                CountableScheduler::ON_TASK_DONE,
+                function (Task $_, $result) use (&$taskFulFilled, &$returnResult): void {
+                    $taskFulFilled = true;
+                    $returnResult = $result;
+                }
+            );
 
         $this->runAndStopEventLoop();
 
@@ -253,15 +277,15 @@ class SchedulerTest extends TestCase
 
         $expiredAt = null;
         $this->scheduler
-            ->on(CountableScheduler::ON_TASK_EXPIRED, function (Task $_, DateTime $expires) use (&$expiredAt) {
+            ->on(CountableScheduler::ON_TASK_EXPIRED, function (Task $_, DateTime $expires) use (&$expiredAt): void {
                 $expiredAt = $expires;
             })
             ->on(
                 CountableScheduler::ON_TASK_RUN,
-                function (Task $t, ExtendedPromiseInterface $_) use ($deferred, $frequency) {
+                function (Task $t, ExtendedPromiseInterface $_) use ($deferred, $frequency): void {
                     $frequency->setExpired();
 
-                    $timer = Loop::addTimer(0, function () use ($deferred, &$timer) {
+                    $timer = Loop::addTimer(0, function () use ($deferred, &$timer): void {
                         $deferred->resolve(0);
 
                         Loop::cancelTimer($timer);
@@ -286,9 +310,12 @@ class SchedulerTest extends TestCase
 
         $this->scheduler
             ->schedule($task, new OneOff(new DateTime('+1 milliseconds')))
-            ->on(CountableScheduler::ON_TASK_RUN, function (Task $t, ExtendedPromiseInterface $_) use (&$hasRun) {
-                $hasRun = true;
-            });
+            ->on(
+                CountableScheduler::ON_TASK_RUN,
+                function (Task $t, ExtendedPromiseInterface $_) use (&$hasRun): void {
+                    $hasRun = true;
+                }
+            );
 
         $this->runAndStopEventLoop();
 
