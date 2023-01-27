@@ -215,6 +215,10 @@ class Scheduler
                 $this->emit(static::ON_TASK_RUN, [$task, $promise]);
             });
             $this->emit(static::ON_TASK_SCHEDULED, [$task, $now]);
+
+            if ($frequency instanceof OneOff) {
+                return $this;
+            }
         }
 
         $loop = function () use (&$loop, $task, $frequency): void {
@@ -223,7 +227,7 @@ class Scheduler
 
             $now = new DateTime();
             $nextDue = $frequency->getNextDue($now);
-            if ($frequency->isExpired($nextDue)) {
+            if ($frequency instanceof OneOff || $frequency->isExpired($nextDue)) {
                 $removeTask = function () use ($task, $nextDue): void {
                     $this->remove($task);
                     $this->emit(static::ON_TASK_EXPIRED, [$task, $nextDue]);

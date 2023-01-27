@@ -285,7 +285,7 @@ class SchedulerTest extends TestCase
                 function (Task $t, ExtendedPromiseInterface $_) use ($deferred, $frequency): void {
                     $frequency->setExpired();
 
-                    $timer = Loop::addTimer(0, function () use ($deferred, &$timer): void {
+                    Loop::addTimer(0, function ($timer) use ($deferred): void {
                         $deferred->resolve(0);
 
                         Loop::cancelTimer($timer);
@@ -305,24 +305,26 @@ class SchedulerTest extends TestCase
 
     public function testOneOffTasksRunOnlyOnce()
     {
-        $hasRun = false;
-        $task = new PromiseBoundTask((new Promise\Deferred())->promise());
-
+        $countRuns = 0;
+        $deferred = new Promise\Deferred();
+        $task = new PromiseBoundTask($deferred->promise());
         $this->scheduler
             ->schedule($task, new OneOff(new DateTime('+1 milliseconds')))
             ->on(
                 CountableScheduler::ON_TASK_RUN,
-                function (Task $t, ExtendedPromiseInterface $_) use (&$hasRun): void {
-                    $hasRun = true;
+                function (Task $t, ExtendedPromiseInterface $_) use (&$countRuns, $deferred): void {
+                    $countRuns += 1;
+
+                    $deferred->resolve();
                 }
             );
 
         $this->runAndStopEventLoop();
 
-        $this->assertTrue($hasRun, 'Scheduler::schedule() did not run a task with one-off frequency');
+        $this->assertEquals(0, $this->scheduler->count());
+        $this->assertEquals(0, $this->scheduler->countTimers());
+        $this->assertEquals(0, $this->scheduler->countPromises($task->getUuid()));
 
-        $this->assertEquals(1, $this->scheduler->count());
-        $this->assertEquals(1, $this->scheduler->countTimers());
-        $this->assertEquals(1, $this->scheduler->countPromises($task->getUuid()));
+        $this->assertEquals(1, $countRuns, 'Scheduler::schedule() did not run a task with one-off frequency only once');
     }
 }
