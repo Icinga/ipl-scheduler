@@ -4,6 +4,7 @@ namespace ipl\Scheduler;
 
 use DateTime;
 use DateTimeInterface;
+use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
 
 class OneOff implements Frequency
@@ -29,5 +30,31 @@ class OneOff implements Frequency
     public function isExpired(DateTimeInterface $dateTime): bool
     {
         return $this->dateTime < $dateTime;
+    }
+
+    public function getStart(): ?DateTimeInterface
+    {
+        return $this->dateTime;
+    }
+
+    public function getEnd(): ?DateTimeInterface
+    {
+        return $this->getStart();
+    }
+
+    public static function fromJson(string $json): Frequency
+    {
+        $data = json_decode($json, true);
+        if (empty($data)) {
+            throw new InvalidArgumentException('Can\'t create one-off frequency without datetime');
+        }
+
+        return new static(new DateTime($data));
+    }
+
+    #[\ReturnTypeWillChange]
+    public function jsonSerialize()
+    {
+        return json_encode($this->dateTime->format(static::SERIALIZED_DATETIME_FORMAT));
     }
 }
