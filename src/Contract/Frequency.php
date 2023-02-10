@@ -3,9 +3,13 @@
 namespace ipl\Scheduler\Contract;
 
 use DateTimeInterface;
+use JsonSerializable;
 
-interface Frequency
+interface Frequency extends JsonSerializable
 {
+    /** @var string Format for representing datetimes when serializing the frequency to JSON */
+    public const SERIALIZED_DATETIME_FORMAT = 'Y-m-d\TH:i:s.uP';
+
     /**
      * Get whether the frequency is due at the specified time
      *
@@ -32,4 +36,27 @@ interface Frequency
      * @return bool
      */
     public function isExpired(DateTimeInterface $dateTime): bool;
+
+    /**
+     * Get the start time of this frequency
+     *
+     * @return ?DateTimeInterface
+     */
+    public function getStart(): ?DateTimeInterface;
+
+    /**
+     * Get the end time of this frequency
+     *
+     * @return ?DateTimeInterface
+     */
+    public function getEnd(): ?DateTimeInterface;
+
+    /**
+     * Create frequency from its stored JSON representation previously encoded with {@see json_encode()}
+     *
+     * @param string $json
+     *
+     * @return $this
+     */
+    public static function fromJson(string $json): self;
 }
