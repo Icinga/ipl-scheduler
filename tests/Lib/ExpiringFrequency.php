@@ -3,20 +3,14 @@
 namespace ipl\Tests\Scheduler\Lib;
 
 use DateTimeInterface;
-use ipl\Scheduler\Contract\Frequency;
 
-class ExpiringFrequency implements Frequency
+class ExpiringFrequency extends BaseTestFrequency
 {
     /** @var bool */
     protected $expired = false;
 
     /** @var DateTimeInterface */
     protected $end;
-
-    public function isDue(DateTimeInterface $dateTime): bool
-    {
-        return true;
-    }
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
