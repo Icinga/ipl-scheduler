@@ -3,6 +3,7 @@
 namespace ipl\Scheduler;
 
 use Cron\CronExpression;
+use DateTime;
 use DateTimeInterface;
 use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
@@ -24,6 +25,9 @@ class Cron implements Frequency
     /** @var DateTimeInterface End time of this frequency */
     protected $end;
 
+    /** @var string String representation of the cron expression */
+    protected $expression;
+
     /**
      * Create frequency from the specified cron expression
      *
@@ -34,6 +38,7 @@ class Cron implements Frequency
     public function __construct(string $expression)
     {
         $this->cron = new CronExpression($expression);
+        $this->expression = $expression;
     }
 
     public function isDue(DateTimeInterface $dateTime): bool
@@ -61,6 +66,26 @@ class Cron implements Frequency
     public function isExpired(DateTimeInterface $dateTime): bool
     {
         return $this->end !== null && $this->end < $dateTime;
+    }
+
+    public function getStart(): ?DateTimeInterface
+    {
+        return $this->start;
+    }
+
+    public function getEnd(): ?DateTimeInterface
+    {
+        return $this->end;
+    }
+
+    /**
+     * Get the configured cron expression
+     *
+     * @return string
+     */
+    public function getExpression(): string
+    {
+        return $this->expression;
     }
 
     /**
@@ -130,5 +155,39 @@ class Cron implements Frequency
     public static function isValid(string $expression): bool
     {
         return CronExpression::isValidExpression($expression);
+    }
+
+    public static function fromJson(string $json): Frequency
+    {
+        $data = json_decode($json, true);
+        if (! isset($data['expression'])) {
+            throw new InvalidArgumentException('Missing required attribute "expression"');
+        }
+
+        $self = new static($data['expression']);
+        if (isset($data['start'])) {
+            $self->startAt(new DateTime($data['start']));
+        }
+
+        if (isset($data['end'])) {
+            $self->endAt(new DateTime($data['end']));
+        }
+
+        return $self;
+    }
+
+    #[\ReturnTypeWillChange]
+    public function jsonSerialize()
+    {
+        $data = ['expression' => $this->getExpression()];
+        if ($this->start) {
+            $data['start'] = $this->start->format(static::SERIALIZED_DATETIME_FORMAT);
+        }
+
+        if ($this->end) {
+            $data['end'] = $this->end->format(static::SERIALIZED_DATETIME_FORMAT);
+        }
+
+        return json_encode($data);
     }
 }
