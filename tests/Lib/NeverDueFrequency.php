@@ -4,9 +4,8 @@ namespace ipl\Tests\Scheduler\Lib;
 
 use DateTime;
 use DateTimeInterface;
-use ipl\Scheduler\Contract\Frequency;
 
-class NeverDueFrequency implements Frequency
+class NeverDueFrequency extends BaseTestFrequency
 {
     public function isDue(DateTimeInterface $dateTime): bool
     {
@@ -16,10 +15,5 @@ class NeverDueFrequency implements Frequency
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
         return (new DateTime())->setTimestamp(PHP_INT_MAX);
-    }
-
-    public function isExpired(DateTimeInterface $dateTime): bool
-    {
-        return false;
     }
 }
