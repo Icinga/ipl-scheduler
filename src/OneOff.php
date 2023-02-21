@@ -45,16 +45,12 @@ class OneOff implements Frequency
     public static function fromJson(string $json): Frequency
     {
         $data = json_decode($json, true);
-        if (empty($data)) {
-            throw new InvalidArgumentException('Can\'t create one-off frequency without datetime');
-        }
 
         return new static(new DateTime($data));
     }
 
-    #[\ReturnTypeWillChange]
-    public function jsonSerialize()
+    public function jsonSerialize(): string
     {
-        return json_encode($this->dateTime->format(static::SERIALIZED_DATETIME_FORMAT));
+        return $this->dateTime->format(static::SERIALIZED_DATETIME_FORMAT);
     }
 }

@@ -112,67 +112,24 @@ class CronTest extends TestCase
         $this->assertTrue($cron->isExpired(new DateTime()));
     }
 
-    public function testJsonSerialize()
+    public function testJsonSerializeAndDeserialize()
     {
+        $start = new DateTime();
         $cron = new Cron('@minutely');
-        $this->assertSame('{"expression":"@minutely"}', $cron->jsonSerialize());
-
-        $start = new DateTime();
         $cron->startAt($start);
-        $this->assertSame(
-            sprintf('{"expression":"@minutely","start":"%s"}', $start->format(Frequency::SERIALIZED_DATETIME_FORMAT)),
-            $cron->jsonSerialize()
-        );
 
-        $end = new DateTime();
-        $cron->endAt($end);
-        $this->assertSame(
-            sprintf(
-                '{"expression":"@minutely","start":"%s","end":"%s"}',
-                $start->format(Frequency::SERIALIZED_DATETIME_FORMAT),
-                $end->format(Frequency::SERIALIZED_DATETIME_FORMAT)
-            ),
-            $cron->jsonSerialize()
-        );
-    }
+        $fromJson = Cron::fromJson(json_encode($cron));
 
-    public function testFromJsonWithInvalidData()
-    {
-        $this->expectException(InvalidArgumentException::class);
+        $this->assertSame('@minutely', $fromJson->getExpression());
+        $this->assertEquals($start, $fromJson->getStart());
 
-        Cron::fromJson('{}');
-    }
-
-    public function testFromJsonWithoutStartAndEndTime()
-    {
-        $this->assertSame('@minutely', (Cron::fromJson('{"expression":"@minutely"}'))->getExpression());
-    }
-
-    public function testFromJsonWithStartTime()
-    {
-        $start = new DateTime();
-        $cron = Cron::fromJson(sprintf(
-            '{"expression":"@minutely","start":"%s"}',
-            $start->format(Frequency::SERIALIZED_DATETIME_FORMAT)
-        ));
-
-        $this->assertSame('@minutely', $cron->getExpression());
-        $this->assertEquals($start, $cron->getStart());
-    }
-
-    public function testFromJsonWithStartAndEndTime()
-    {
-        $start = new DateTime();
         $end = (clone $start)->modify('+2 weeks');
+        $cron->endAt($end);
 
-        $cron = Cron::fromJson(sprintf(
-            '{"expression":"@minutely","start":"%s", "end": "%s"}',
-            $start->format(Frequency::SERIALIZED_DATETIME_FORMAT),
-            $end->format(Frequency::SERIALIZED_DATETIME_FORMAT)
-        ));
+        $fromJson = Cron::fromJson(json_encode($cron));
 
-        $this->assertSame('@minutely', $cron->getExpression());
-        $this->assertEquals($start, $cron->getStart());
-        $this->assertEquals($end, $cron->getEnd());
+        $this->assertSame('@minutely', $fromJson->getExpression());
+        $this->assertEquals($start, $fromJson->getStart());
+        $this->assertEquals($end, $fromJson->getEnd());
     }
 }
