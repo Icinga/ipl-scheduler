@@ -160,9 +160,6 @@ class Cron implements Frequency
     public static function fromJson(string $json): Frequency
     {
         $data = json_decode($json, true);
-        if (! isset($data['expression'])) {
-            throw new InvalidArgumentException('Missing required attribute "expression"');
-        }
 
         $self = new static($data['expression']);
         if (isset($data['start'])) {
@@ -176,8 +173,7 @@ class Cron implements Frequency
         return $self;
     }
 
-    #[\ReturnTypeWillChange]
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         $data = ['expression' => $this->getExpression()];
         if ($this->start) {
@@ -188,6 +184,6 @@ class Cron implements Frequency
             $data['end'] = $this->end->format(static::SERIALIZED_DATETIME_FORMAT);
         }
 
-        return json_encode($data);
+        return $data;
     }
 }

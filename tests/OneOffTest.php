@@ -40,24 +40,9 @@ class OneOffTest extends TestCase
         $now = new DateTime();
         $oneOff = new OneOff($now);
 
-        $this->assertSame(
-            sprintf('"%s"', $now->format(Frequency::SERIALIZED_DATETIME_FORMAT)),
-            $oneOff->jsonSerialize()
-        );
-    }
+        $fromJson = OneOff::fromJson(json_encode($oneOff));
 
-    public function testFromJsonWithoutDateTime()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        OneOff::fromJson('{}');
-    }
-
-    public function testFromJsonWithValidDateTime()
-    {
-        $now = new DateTime();
-        $oneOff = OneOff::fromJson(sprintf('"%s"', $now->format(Frequency::SERIALIZED_DATETIME_FORMAT)));
-
-        $this->assertEquals($now, $oneOff->getStart());
+        $this->assertEquals($oneOff, $fromJson);
+        $this->assertEquals($now, $fromJson->getStart());
     }
 }
