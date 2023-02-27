@@ -27,6 +27,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: phpcs
+          extensions: ev
 
       - name: Setup dependencies
         run: composer require -n --no-progress overtrue/phplint
@@ -61,6 +62,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: phpunit:${{ env.PHPUNIT_VERSION }}
+          extensions: ev
 
       - name: Setup dependencies
         run: composer install -n --no-progress
