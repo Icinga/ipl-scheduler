@@ -114,14 +114,14 @@ class SchedulerTest extends TestCase
                 }
             );
 
-        // Tick callbacks are guaranteed to be executed in the order they are enqueued,
-        // thus we will not be able to remove the task before it is finished. Therefore,
-        // we need to use timers with 0 intervals.
-        Loop::addTimer(0, function () use ($task): void {
+        // Wait .001ms for the scheduler to run the task at least 2x before removing it und stopping the event loop.
+        Loop::addTimer(.001, function () use ($task): void {
             $this->scheduler->remove($task);
+
+            Loop::stop();
         });
 
-        $this->runAndStopEventLoop();
+        Loop::run();
 
         // When a task is due before the ongoing promise gets resolved, the scheduler will
         // not cancel it. Instead, it will start a new one for the new operations.
