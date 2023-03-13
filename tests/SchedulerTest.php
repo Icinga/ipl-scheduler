@@ -114,8 +114,9 @@ class SchedulerTest extends TestCase
                 }
             );
 
-        // Wait .001ms for the scheduler to run the task at least 2x before removing it und stopping the event loop.
-        Loop::addTimer(.001, function () use ($task): void {
+        // Wait 0.01s for the scheduler to run the task a couple of times before
+        // removing it und stopping the event loop.
+        Loop::addTimer(.01, function () use ($task): void {
             $this->scheduler->remove($task);
 
             Loop::stop();
@@ -125,7 +126,8 @@ class SchedulerTest extends TestCase
 
         // When a task is due before the ongoing promise gets resolved, the scheduler will
         // not cancel it. Instead, it will start a new one for the new operations.
-        $this->assertCount(2, $canceledPromises, 'Scheduler::remove() did not cancel running tasks');
+        $startedPromises = $task->getStartedPromises();
+        $this->assertCount($startedPromises, $canceledPromises, 'Scheduler::remove() did not cancel running tasks');
 
         $scheduledTimers = $this->scheduler->countTimers();
         $scheduledTasks = $this->scheduler->count();

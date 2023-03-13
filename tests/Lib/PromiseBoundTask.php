@@ -14,6 +14,9 @@ class PromiseBoundTask implements Task
     /** @var ExtendedPromiseInterface */
     protected $promise;
 
+    /** @var int  */
+    protected $startedPromises = 0;
+
     public function __construct(ExtendedPromiseInterface $promise)
     {
         $this->promise = $promise;
@@ -23,8 +26,15 @@ class PromiseBoundTask implements Task
         $this->setUuid($uuid);
     }
 
+    public function getStartedPromises(): int
+    {
+        return $this->startedPromises;
+    }
+
     public function run(): ExtendedPromiseInterface
     {
+        $this->startedPromises++;
+
         return $this->promise;
     }
 }
