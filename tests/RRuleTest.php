@@ -3,6 +3,7 @@
 namespace ipl\Tests\Scheduler;
 
 use DateTime;
+use DateTimeZone;
 use ipl\Scheduler\Contract\Frequency;
 use ipl\Scheduler\RRule;
 use PHPUnit\Framework\TestCase;
@@ -155,5 +156,16 @@ class RRuleTest extends TestCase
             ->endAt(new DateTime('next week'));
 
         $this->assertEquals($rrule, RRule::fromJson(json_encode($rrule)));
+    }
+
+    public function testRecurrenceEndIsProperlySet()
+    {
+        $endAt = new DateTime('2024-01-01T12:00:00');
+        $rrule = RRule::fromFrequency(RRule::DAILY)
+            ->startAt(new DateTime('2023-01-01T12:00:00'))
+            ->endAt($endAt);
+
+        $this->assertNull($rrule->getEndDate(), 'RRule still sets end date as DTEND');
+        $this->assertEquals($endAt, $rrule->getUntil(), 'RRule does not set end date as UNTIL');
     }
 }
