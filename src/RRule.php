@@ -126,6 +126,9 @@ class RRule implements Frequency
         $data = json_decode($json);
         $self = new static($data->rrule);
         $self->frequency = $data->frequency;
+        if (isset($data->start)) {
+            $self->startAt(DateTime::createFromFormat(static::SERIALIZED_DATETIME_FORMAT, $data->start));
+        }
 
         return $self;
     }
@@ -183,7 +186,7 @@ class RRule implements Frequency
         // the transformer operates only up to seconds level. See also the upstream issue #155
         $startDate->setTime($start->format('H'), $start->format('i'), $start->format('s'));
 
-        $this->rrule->setStartDate($startDate, true);
+        $this->rrule->setStartDate($startDate);
 
         return $this;
     }
@@ -273,10 +276,17 @@ class RRule implements Frequency
 
     public function jsonSerialize(): array
     {
-        return [
+        $data = [
             'rrule'     => $this->rrule->getString(),
             'frequency' => $this->frequency
         ];
+
+        $start = $this->getStart();
+        if ($start) {
+            $data['start'] = $start->format(static::SERIALIZED_DATETIME_FORMAT);
+        }
+
+        return $data;
     }
 
     /**
