@@ -197,7 +197,7 @@ class RRule implements Frequency
     }
 
     /**
-     * Set the end time of this frequency
+     * Set the time until this frequency lasts
      *
      * The given datetime will be cloned and microseconds removed since iCalendar datetimes only work to the second.
      *
@@ -210,7 +210,7 @@ class RRule implements Frequency
         $end = clone $end;
         $end->setTime($end->format('H'), $end->format('i'), $end->format('s'));
 
-        $this->rrule->setEndDate($end);
+        $this->rrule->setUntil($end);
 
         return $this;
     }
