@@ -5,6 +5,7 @@ namespace ipl\Scheduler;
 use BadMethodCallException;
 use DateTime;
 use DateTimeInterface;
+use DateTimeZone;
 use Generator;
 use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
@@ -185,6 +186,8 @@ class RRule implements Frequency
         // When the start time contains microseconds, the first recurrence will always be skipped, as
         // the transformer operates only up to seconds level. See also the upstream issue #155
         $startDate->setTime($start->format('H'), $start->format('i'), $start->format('s'));
+        // In case start time uses a different tz than what the rrule internally does, we force it to use the same
+        $startDate->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
 
         $this->rrule->setStartDate($startDate);
 
@@ -277,13 +280,15 @@ class RRule implements Frequency
     public function jsonSerialize(): array
     {
         $data = [
-            'rrule'     => $this->rrule->getString(),
+            'rrule'     => $this->rrule->getString(RecurrRule::TZ_FIXED),
             'frequency' => $this->frequency
         ];
 
         $start = $this->getStart();
         if ($start) {
-            $data['start'] = $start->format(static::SERIALIZED_DATETIME_FORMAT);
+            $data['start'] = (clone $start)
+                ->setTimezone(new DateTimeZone('UTC'))
+                ->format(static::SERIALIZED_DATETIME_FORMAT);
         }
 
         return $data;

@@ -168,4 +168,37 @@ class RRuleTest extends TestCase
         $this->assertNull($rrule->getEndDate(), 'RRule still sets end date as DTEND');
         $this->assertEquals($endAt, $rrule->getUntil(), 'RRule does not set end date as UNTIL');
     }
+
+    public function testSerializationAndDeserializationHandleTimezonesCorrectly()
+    {
+        $oldTz = date_default_timezone_get();
+        date_default_timezone_set('Europe/Berlin');
+
+        try {
+            $startWithTz = new DateTime('01-06-2023T12:00:00', new DateTimeZone('America/New_York'));
+            $endWithTz = new DateTime('01-06-2024T07:00:00', new DateTimeZone('America/New_York'));
+
+            $rrule = RRule::fromJson(
+                json_encode(
+                    RRule::fromFrequency(RRule::DAILY)
+                        ->startAt($startWithTz)
+                        ->endAt($endWithTz)
+                        ->jsonSerialize()
+                )
+            );
+
+            $this->assertSame(
+                '18',
+                $rrule->getStart()->format('H'),
+                'fromJson(jsonSerialize()) does not restore the start date with a timezone correctly'
+            );
+            $this->assertSame(
+                '13',
+                $rrule->getEnd()->format('H'),
+                'fromJson(jsonSerialize()) does not restore the end date with a timezone correctly'
+            );
+        } finally {
+            date_default_timezone_set($oldTz);
+        }
+    }
 }
