@@ -8,7 +8,7 @@ use JsonSerializable;
 interface Frequency extends JsonSerializable
 {
     /** @var string Format for representing datetimes when serializing the frequency to JSON */
-    public const SERIALIZED_DATETIME_FORMAT = 'Y-m-d\TH:i:s.uP';
+    public const SERIALIZED_DATETIME_FORMAT = 'Y-m-d\TH:i:s.ue';
 
     /**
      * Get whether the frequency is due at the specified time
