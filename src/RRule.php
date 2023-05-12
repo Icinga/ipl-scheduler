@@ -286,9 +286,7 @@ class RRule implements Frequency
 
         $start = $this->getStart();
         if ($start) {
-            $data['start'] = (clone $start)
-                ->setTimezone(new DateTimeZone('UTC'))
-                ->format(static::SERIALIZED_DATETIME_FORMAT);
+            $data['start'] = $start->format(static::SERIALIZED_DATETIME_FORMAT);
         }
 
         return $data;
