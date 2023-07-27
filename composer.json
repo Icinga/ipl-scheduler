@@ -13,9 +13,9 @@
     "ext-json": "*",
     "dragonmantank/cron-expression": "^3",
     "psr/log": "^1",
-    "ramsey/uuid": "^3",
-    "react/event-loop": "^1",
-    "react/promise": "^2",
+    "ramsey/uuid": "^4.2.3",
+    "react/event-loop": "^1.4",
+    "react/promise": "^2.10",
     "simshaun/recurr": "^5",
     "ipl/stdlib": ">=0.12.0"
   },
