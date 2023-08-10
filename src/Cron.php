@@ -5,6 +5,7 @@ namespace ipl\Scheduler;
 use Cron\CronExpression;
 use DateTime;
 use DateTimeInterface;
+use DateTimeZone;
 use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
 
@@ -98,6 +99,7 @@ class Cron implements Frequency
     public function startAt(DateTimeInterface $start): self
     {
         $this->start = clone $start;
+        $this->start->setTimezone(new DateTimeZone(date_default_timezone_get()));
 
         return $this;
     }
@@ -112,6 +114,7 @@ class Cron implements Frequency
     public function endAt(DateTimeInterface $end): Frequency
     {
         $this->end = clone $end;
+        $this->end->setTimezone(new DateTimeZone(date_default_timezone_get()));
 
         return $this;
     }

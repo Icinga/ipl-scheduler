@@ -4,17 +4,18 @@ namespace ipl\Scheduler;
 
 use DateTime;
 use DateTimeInterface;
-use InvalidArgumentException;
+use DateTimeZone;
 use ipl\Scheduler\Contract\Frequency;
 
 class OneOff implements Frequency
 {
-    /** @var DateTime Start time of this frequency */
+    /** @var DateTimeInterface Start time of this frequency */
     protected $dateTime;
 
-    public function __construct(DateTime $dateTime)
+    public function __construct(DateTimeInterface $dateTime)
     {
         $this->dateTime = clone $dateTime;
+        $this->dateTime->setTimezone(new DateTimeZone(date_default_timezone_get()));
     }
 
     public function isDue(DateTimeInterface $dateTime): bool
