@@ -240,7 +240,7 @@ class RRule implements Frequency
      * @param int $limit Limit the recurrences to be generated to the given value
      * @param bool $include Whether to include the passed time in the result set
      *
-     * @return Generator
+     * @return Generator<DateTimeInterface>
      */
     public function getNextRecurrences(
         DateTimeInterface $dateTime,
