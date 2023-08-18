@@ -1,0 +1,31 @@
+parameters:
+    level: max
+
+    paths:
+        - src
+
+    scanDirectories:
+        - vendor
+
+    ignoreErrors:
+        - '#Unsafe usage of new static\(\)#'
+
+        - '#Method ipl\\Scheduler\\.*::getNextDue\(\) .* but returns DateTimeInterface\|null#'
+
+        - '#Call to an undefined method DateTimeInterface::#'
+
+        - '#Parameter \#1 \$timezone of class DateTimeZone constructor expects string, string\|null given#'
+
+        - '#Call to an undefined method React\\Promise\\PromiseInterface::#'
+
+        - '#Parameter \#1 \$timer of static method React\\EventLoop\\Loop::cancelTimer\(\) expects#'
+
+        - '#Method ipl\\Scheduler\\.*::jsonSerialize\(\) return type has no value type specified in iterable type#'
+
+        - '#Method ipl\\Scheduler\\.* should return \$this.* but returns static#'
+
+        - '#Parameter \#2 \$before of class Recurr\\Transformer\\Constraint\\BetweenConstraint constructor#'
+
+        - '#Parameter \#1 \$rrule of class Recurr\\Rule constructor expects string\|null, array.*\|string given#'
+
+        - '#Parameter \#1 \$callback of function call_user_func_array expects callable\(\): mixed, array{Recurr\\Rule, string} given#'
