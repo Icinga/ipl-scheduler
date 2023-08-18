@@ -296,7 +296,7 @@ class RRule implements Frequency
      * Redirect all public method calls to the underlying rrule object
      *
      * @param string $methodName
-     * @param array $args
+     * @param array<mixed> $args
      *
      * @return mixed
      *
