@@ -124,7 +124,7 @@ class Scheduler
      */
     public const ON_TASK_EXPIRED = 'task-expired';
 
-    /** @var SplObjectStorage The scheduled tasks of this scheduler */
+    /** @var SplObjectStorage<Task, null> The scheduled tasks of this scheduler */
     protected $tasks;
 
     public function __construct()
@@ -285,9 +285,10 @@ class Scheduler
     {
         Loop::cancelTimer($this->detachTimer($task->getUuid()));
 
+        /** @var ExtendedPromiseInterface[] $promises */
         $promises = $this->detachPromises($task->getUuid());
         if (! empty($promises)) {
-            /** @var ExtendedPromiseInterface[] $promises */
+            /** @var Promise\CancellablePromiseInterface $promise */
             foreach ($promises as $promise) {
                 $promise->cancel();
             }

@@ -63,7 +63,7 @@ class RRule implements Frequency
     /**
      * Construct a new rrule instance
      *
-     * @param string|array $rule
+     * @param string|array<string, mixed> $rule
      *
      * @throws InvalidRRule
      */
