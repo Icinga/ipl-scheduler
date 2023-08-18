@@ -262,7 +262,7 @@ class Scheduler
         return $this;
     }
 
-    public function isValidEvent($event)
+    public function isValidEvent(string $event): bool
     {
         $events = array_flip([
             static::ON_TASK_CANCEL,
