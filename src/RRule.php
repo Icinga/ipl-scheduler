@@ -15,6 +15,7 @@ use Recurr\Transformer\ArrayTransformer;
 use Recurr\Transformer\ArrayTransformerConfig;
 use Recurr\Transformer\Constraint\AfterConstraint;
 use Recurr\Transformer\Constraint\BetweenConstraint;
+use stdClass;
 
 use function ipl\Stdlib\get_php_type;
 
@@ -124,11 +125,17 @@ class RRule implements Frequency
 
     public static function fromJson(string $json): Frequency
     {
+        /** @var stdClass $data */
         $data = json_decode($json);
         $self = new static($data->rrule);
         $self->frequency = $data->frequency;
         if (isset($data->start)) {
-            $self->startAt(DateTime::createFromFormat(static::SERIALIZED_DATETIME_FORMAT, $data->start));
+            $start = DateTime::createFromFormat(static::SERIALIZED_DATETIME_FORMAT, $data->start);
+            if (! $start) {
+                throw new InvalidArgumentException(sprintf('Cannot deserialize start time: %s', $data->start));
+            }
+
+            $self->startAt($start);
         }
 
         return $self;
