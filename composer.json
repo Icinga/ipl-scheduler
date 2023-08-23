@@ -19,6 +19,9 @@
     "simshaun/recurr": "^5",
     "ipl/stdlib": ">=0.12.0"
   },
+  "require-dev": {
+    "ipl/stdlib": "dev-main"
+  },
   "suggest": {
     "ext-ev": "Improves performance, efficiency and avoids system limitations. Highly recommended! (See https://www.php.net/manual/en/intro.ev.php for details)"
   },
