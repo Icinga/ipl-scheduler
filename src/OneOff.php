@@ -5,7 +5,10 @@ namespace ipl\Scheduler;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
+use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
+
+use function ipl\Stdlib\get_php_type;
 
 class OneOff implements Frequency
 {
@@ -46,6 +49,15 @@ class OneOff implements Frequency
     public static function fromJson(string $json): Frequency
     {
         $data = json_decode($json, true);
+        if (! is_string($data)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    '%s expects json decoded value to be string, got %s instead',
+                    __METHOD__,
+                    get_php_type($data)
+                )
+            );
+        }
 
         return new static(new DateTime($data));
     }

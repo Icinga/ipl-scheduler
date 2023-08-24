@@ -15,6 +15,7 @@ use Recurr\Transformer\ArrayTransformer;
 use Recurr\Transformer\ArrayTransformerConfig;
 use Recurr\Transformer\Constraint\AfterConstraint;
 use Recurr\Transformer\Constraint\BetweenConstraint;
+use stdClass;
 
 use function ipl\Stdlib\get_php_type;
 
@@ -62,7 +63,7 @@ class RRule implements Frequency
     /**
      * Construct a new rrule instance
      *
-     * @param string|array $rule
+     * @param string|array<string, mixed> $rule
      *
      * @throws InvalidRRule
      */
@@ -124,11 +125,17 @@ class RRule implements Frequency
 
     public static function fromJson(string $json): Frequency
     {
+        /** @var stdClass $data */
         $data = json_decode($json);
         $self = new static($data->rrule);
         $self->frequency = $data->frequency;
         if (isset($data->start)) {
-            $self->startAt(DateTime::createFromFormat(static::SERIALIZED_DATETIME_FORMAT, $data->start));
+            $start = DateTime::createFromFormat(static::SERIALIZED_DATETIME_FORMAT, $data->start);
+            if (! $start) {
+                throw new InvalidArgumentException(sprintf('Cannot deserialize start time: %s', $data->start));
+            }
+
+            $self->startAt($start);
         }
 
         return $self;
@@ -240,7 +247,7 @@ class RRule implements Frequency
      * @param int $limit Limit the recurrences to be generated to the given value
      * @param bool $include Whether to include the passed time in the result set
      *
-     * @return Generator
+     * @return Generator<DateTimeInterface>
      */
     public function getNextRecurrences(
         DateTimeInterface $dateTime,
@@ -296,7 +303,7 @@ class RRule implements Frequency
      * Redirect all public method calls to the underlying rrule object
      *
      * @param string $methodName
-     * @param array $args
+     * @param array<mixed> $args
      *
      * @return mixed
      *

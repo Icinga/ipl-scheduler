@@ -10,7 +10,7 @@ use SplObjectStorage;
 
 trait Promises
 {
-    /** @var SplObjectStorage */
+    /** @var SplObjectStorage<UuidInterface, ArrayObject<int, PromiseInterface>> */
     protected $promises;
 
     /**
@@ -100,9 +100,7 @@ trait Promises
             return [];
         }
 
-        /** @var ArrayObject $promises */
         $promises = $this->promises[$uuid];
-
         $this->promises->detach($uuid);
 
         return $promises->getArrayCopy();

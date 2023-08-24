@@ -9,6 +9,8 @@ use DateTimeZone;
 use InvalidArgumentException;
 use ipl\Scheduler\Contract\Frequency;
 
+use function ipl\Stdlib\get_php_type;
+
 class Cron implements Frequency
 {
     public const PART_MINUTE = 0;
@@ -20,10 +22,10 @@ class Cron implements Frequency
     /** @var CronExpression */
     protected $cron;
 
-    /** @var DateTimeInterface Start time of this frequency */
+    /** @var ?DateTimeInterface Start time of this frequency */
     protected $start;
 
-    /** @var DateTimeInterface End time of this frequency */
+    /** @var ?DateTimeInterface End time of this frequency */
     protected $end;
 
     /** @var string String representation of the cron expression */
@@ -163,6 +165,15 @@ class Cron implements Frequency
     public static function fromJson(string $json): Frequency
     {
         $data = json_decode($json, true);
+        if (! is_array($data)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    '%s expects json decoded value to be an array, got %s instead',
+                    __METHOD__,
+                    get_php_type($data)
+                )
+            );
+        }
 
         $self = new static($data['expression']);
         if (isset($data['start'])) {

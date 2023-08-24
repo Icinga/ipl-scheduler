@@ -8,7 +8,7 @@ use SplObjectStorage;
 
 trait Timers
 {
-    /** @var SplObjectStorage */
+    /** @var SplObjectStorage<UuidInterface, TimerInterface> */
     protected $timers;
 
     /**
