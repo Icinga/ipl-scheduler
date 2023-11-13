@@ -23,6 +23,8 @@ parameters:
 
         - '#Call to an undefined method DateTimeInterface::#'
 
+        - '#PHPDoc tag @var for property ipl\\Scheduler\\Scheduler::.* contains unresolvable type#'
+
         - '#Call to an undefined method React\\Promise\\PromiseInterface::#'
 
         - '#Method ipl\\Scheduler\\.* should return \$this.* but returns static#'

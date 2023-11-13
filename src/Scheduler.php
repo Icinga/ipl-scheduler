@@ -12,7 +12,6 @@ use ipl\Stdlib\Events;
 use React\EventLoop\Loop;
 use React\Promise;
 use React\Promise\ExtendedPromiseInterface;
-use SplObjectStorage;
 use Throwable;
 
 class Scheduler
@@ -124,15 +123,15 @@ class Scheduler
      */
     public const ON_TASK_EXPIRED = 'task-expired';
 
-    /** @var SplObjectStorage<Task, null> The scheduled tasks of this scheduler */
+    /** @var ObjectStorage<Task, null> The scheduled tasks of this scheduler */
     protected $tasks;
 
     public function __construct()
     {
-        $this->tasks = new SplObjectStorage();
+        $this->tasks = new ObjectStorage();
 
-        $this->promises = new SplObjectStorage();
-        $this->timers = new SplObjectStorage();
+        $this->promises = new ObjectStorage();
+        $this->timers = new ObjectStorage();
 
         $this->init();
     }
@@ -177,7 +176,7 @@ class Scheduler
             $this->cancelTask($task);
         }
 
-        $this->tasks = new SplObjectStorage();
+        $this->tasks = new ObjectStorage();
 
         return $this;
     }

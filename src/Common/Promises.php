@@ -4,13 +4,13 @@ namespace ipl\Scheduler\Common;
 
 use ArrayObject;
 use InvalidArgumentException;
+use ipl\Scheduler\ObjectStorage;
 use Ramsey\Uuid\UuidInterface;
 use React\Promise\PromiseInterface;
-use SplObjectStorage;
 
 trait Promises
 {
-    /** @var SplObjectStorage<UuidInterface, ArrayObject<int, PromiseInterface>> */
+    /** @var ObjectStorage<UuidInterface, ArrayObject<int, PromiseInterface>> */
     protected $promises;
 
     /**
