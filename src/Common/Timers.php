@@ -2,13 +2,13 @@
 
 namespace ipl\Scheduler\Common;
 
+use ipl\Scheduler\ObjectStorage;
 use Ramsey\Uuid\UuidInterface;
 use React\EventLoop\TimerInterface;
-use SplObjectStorage;
 
 trait Timers
 {
-    /** @var SplObjectStorage<UuidInterface, TimerInterface> */
+    /** @var ObjectStorage<UuidInterface, TimerInterface> */
     protected $timers;
 
     /**
