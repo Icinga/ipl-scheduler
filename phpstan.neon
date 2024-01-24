@@ -11,9 +11,6 @@ parameters:
     paths:
         - src
 
-    scanDirectories:
-        - vendor
-
     ignoreErrors:
         -
             messages:
