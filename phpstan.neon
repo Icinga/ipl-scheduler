@@ -26,7 +26,3 @@ parameters:
         - '#Call to an undefined method React\\Promise\\PromiseInterface::#'
 
         - '#Method ipl\\Scheduler\\.* should return \$this.* but returns static#'
-
-        - '#Parameter \#1 \$rrule of class Recurr\\Rule constructor expects string\|null, array.*\|string given#'
-
-        - '#Parameter \#1 \$callback of function call_user_func_array expects callable\(\): mixed, array{Recurr\\Rule, string} given#'
