@@ -1,36 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Method ipl\\\\Scheduler\\\\Cron\\:\\:getNextDue\\(\\) should return DateTimeInterface but returns DateTimeInterface\\|null\\.$#"
-			count: 2
-			path: src/Cron.php
-
-		-
-			message: "#^Method ipl\\\\Scheduler\\\\Cron\\:\\:jsonSerialize\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Cron.php
-
-		-
-			message: "#^Method ipl\\\\Scheduler\\\\RRule\\:\\:getNextDue\\(\\) should return DateTimeInterface but returns DateTimeInterface\\|null\\.$#"
+			message: "#^Parameter \\#1 \\$rrule of class Recurr\\\\Rule constructor expects string\\|null, array\\<string, mixed\\>\\|string given\\.$#"
 			count: 1
 			path: src/RRule.php
-
-		-
-			message: "#^Method ipl\\\\Scheduler\\\\RRule\\:\\:jsonSerialize\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/RRule.php
-
-		-
-			message: "#^Parameter \\#1 \\$timezone of class DateTimeZone constructor expects string, string\\|null given\\.$#"
-			count: 1
-			path: src/RRule.php
-
-		-
-			message: "#^Parameter \\#2 \\$before of class Recurr\\\\Transformer\\\\Constraint\\\\BetweenConstraint constructor expects DateTimeInterface, DateTimeInterface\\|null given\\.$#"
-			count: 1
-			path: src/RRule.php
-
-		-
-			message: "#^Parameter \\#1 \\$timer of static method React\\\\EventLoop\\\\Loop\\:\\:cancelTimer\\(\\) expects React\\\\EventLoop\\\\TimerInterface, React\\\\EventLoop\\\\TimerInterface\\|null given\\.$#"
-			count: 1
-			path: src/Scheduler.php
