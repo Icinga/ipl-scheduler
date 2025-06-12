@@ -1,6 +1,5 @@
 # Icinga PHP Library - Tasks Scheduler
 
-[![PHP Support](https://img.shields.io/badge/php-%3E%3D%207.2-777BB4?logo=PHP)](https://php.net/)
 ![Build Status](https://github.com/Icinga/ipl-scheduler/workflows/PHP%20Tests/badge.svg?branch=main)
 
 Framework-independent scheduler that executes tasks at regular intervals or once at specific times in an event loop.
