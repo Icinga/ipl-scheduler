@@ -56,11 +56,17 @@ class Cron implements Frequency
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
         if ($this->isExpired($dateTime)) {
-            return $this->end;
+            /** @var DateTimeInterface $end */
+            $end = $this->end;
+
+            return $end;
         }
 
         if ($dateTime < $this->start) {
-            return $this->start;
+            /** @var DateTimeInterface $start */
+            $start = $this->start;
+
+            return $start;
         }
 
         return $this->cron->getNextRunDate($dateTime);
@@ -187,6 +193,9 @@ class Cron implements Frequency
         return $self;
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function jsonSerialize(): array
     {
         $data = ['expression' => $this->getExpression()];

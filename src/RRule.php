@@ -158,7 +158,10 @@ class RRule implements Frequency
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
         if ($this->isExpired($dateTime)) {
-            return $this->getEnd();
+            /** @var DateTimeInterface $end */
+            $end = $this->getEnd();
+
+            return $end;
         }
 
         $nextDue = $this->getNextRecurrences($dateTime, 1, false);
@@ -194,7 +197,9 @@ class RRule implements Frequency
         // the transformer operates only up to seconds level. See also the upstream issue #155
         $startDate->setTime($start->format('H'), $start->format('i'), $start->format('s'));
         // In case start time uses a different tz than what the rrule internally does, we force it to use the same
-        $startDate->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
+        /** @var string $timeZone */
+        $timeZone = $this->rrule->getTimezone();
+        $startDate->setTimezone(new DateTimeZone($timeZone));
 
         $this->rrule->setStartDate($startDate);
 
@@ -267,7 +272,9 @@ class RRule implements Frequency
         if (! $this->rrule->repeatsIndefinitely()) {
             // When accessing this method externally (not by using `getNextDue()`), the transformer may
             // generate recurrences beyond the configured end time.
-            $constraint = new BetweenConstraint($dateTime, $this->getEnd(), $include);
+            /** @var DateTimeInterface $end */
+            $end = $this->getEnd();
+            $constraint = new BetweenConstraint($dateTime, $end, $include);
         }
 
         // Setting the start date to a date time smaller than now causes the underlying library
@@ -284,6 +291,9 @@ class RRule implements Frequency
         }
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function jsonSerialize(): array
     {
         $data = [
@@ -323,6 +333,9 @@ class RRule implements Frequency
             );
         }
 
-        return call_user_func_array([$this->rrule, $methodName], $args);
+        /** @var callable $callBack */
+        $callBack = [$this->rrule, $methodName];
+
+        return call_user_func_array($callBack, $args);
     }
 }
