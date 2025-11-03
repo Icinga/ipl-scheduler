@@ -1,4 +1,4 @@
-name: PHP Tests
+name: CI
 
 on:
   push:
@@ -6,70 +6,12 @@ on:
       - main
       - release/*
   pull_request:
+    branches:
+      - main
 
 jobs:
-  lint:
-    name: Static analysis for PHP ${{ matrix.php }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
-        os: [ 'ubuntu-latest' ]
-
-    steps:
-      - name: Checkout code base
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          tools: phpcs
-          extensions: ev
-
-      - name: Setup dependencies
-        run: composer require -n --no-progress overtrue/phplint
-
-      - name: PHP Lint
-        if: ${{ ! cancelled() }}
-        run: ./vendor/bin/phplint -n --exclude={^vendor/.*} -- .
-
-      - name: PHP CodeSniffer
-        if: ${{ ! cancelled() }}
-        run: phpcs -wps --colors
-
-      - name: PHPStan
-        if: ${{ ! cancelled() }}
-        uses: php-actions/phpstan@v3
-
-  test:
-    name: Unit tests with PHP ${{ matrix.php }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-
-    env:
-      PHPUNIT_VERSION: 8.5
-
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
-        os: [ 'ubuntu-latest' ]
-
-    steps:
-      - name: Checkout code base
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          tools: phpunit:${{ env.PHPUNIT_VERSION }}
-          extensions: ev
-
-      - name: Setup dependencies
-        run: composer install -n --no-progress
-
-      - name: PHPUnit
-        run: phpunit --verbose
+  php:
+    name: php
+    uses: Icinga/github-actions/.github/workflows/php.yml@php-workflows
+    with:
+      databases: false
