@@ -2,12 +2,11 @@
 
 namespace ipl\Tests\Scheduler;
 
+use DateInterval;
 use DateTime;
 use DateTimeZone;
-use ipl\Scheduler\Contract\Frequency;
 use ipl\Scheduler\RRule;
 use PHPUnit\Framework\TestCase;
-use Recurr\Exception\InvalidRRule;
 
 class RRuleTest extends TestCase
 {
@@ -199,6 +198,38 @@ class RRuleTest extends TestCase
             );
         } finally {
             date_default_timezone_set($oldTz);
+        }
+    }
+
+    public function testRruleWithDifferentDisplayTimezone()
+    {
+        $dtStart = new DateTime('2025-11-04 00:00:00', new DateTimeZone('Europe/Berlin'));
+
+        $displayTz = 'America/New_York';
+        $firstHandoff = (clone $dtStart)->setTimezone(new DateTimeZone('America/New_York'));
+
+        $rrule = RRule::fromJson(
+            json_encode(
+                (new RRule('FREQ=' . RRule::DAILY))
+                    ->startAt($dtStart)
+                    ->jsonSerialize()
+            )
+        )
+            ->setTimezone($displayTz)
+            ->startAt($firstHandoff);
+
+        foreach ($rrule->getNextRecurrences($firstHandoff, 7) as $index => $recurrence) {
+            $this->assertSame(
+                $displayTz,
+                $recurrence->getTimezone()->getName(),
+                'RRule does not generate recurrences in the correct timezone'
+            );
+
+            $this->assertSame(
+                (clone $firstHandoff)->add(new DateInterval(sprintf('P%sD', $index)))->format('Y-m-d H:i:s'),
+                $recurrence->format('Y-m-d H:i:s'),
+                'RRule does not correctly generate recurrences for the display timezone'
+            );
         }
     }
 }
