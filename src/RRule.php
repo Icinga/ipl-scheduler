@@ -64,13 +64,12 @@ class RRule implements Frequency
      * Construct a new rrule instance
      *
      * @param string|array<string, mixed> $rule
-     * @param ?string                     $timezone
      *
      * @throws InvalidRRule
      */
-    public function __construct($rule, ?string $timezone = null)
+    public function __construct($rule)
     {
-        $this->rrule = new RecurrRule($rule, timezone: $timezone);
+        $this->rrule = new RecurrRule($rule);
         $this->frequency = $this->rrule->getFreqAsText();
         $this->transformerConfig = new ArrayTransformerConfig();
         $this->transformerConfig->setVirtualLimit(self::DEFAULT_LIMIT);
@@ -177,6 +176,20 @@ class RRule implements Frequency
         }
 
         return $this->getEnd() !== null && $this->getEnd() < $dateTime;
+    }
+
+    /**
+     * Set timezone for the rrule
+     *
+     * @param string $timezone
+     *
+     * @return $this
+     */
+    public function setTimezone(string $timezone): self
+    {
+        $this->rrule->setTimezone($timezone);
+
+        return $this;
     }
 
     /**
