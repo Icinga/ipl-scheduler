@@ -203,10 +203,11 @@ class RRuleTest extends TestCase
 
     public function testRruleWithDifferentDisplayTimezone()
     {
-        $dtStart = new DateTime('2025-11-04 00:00:00', new DateTimeZone('Europe/Berlin'));
+        $scheduleTz = 'Europe/Berlin';
+        $dtStart = new DateTime('2025-11-04 00:00:00', new DateTimeZone($scheduleTz));
 
         $displayTz = 'America/New_York';
-        $firstHandoff = (clone $dtStart)->setTimezone(new DateTimeZone('America/New_York'));
+        $firstHandoff = (clone $dtStart)->setTimezone(new DateTimeZone($displayTz));
 
         $rrule = RRule::fromJson(
             json_encode(
@@ -215,10 +216,10 @@ class RRuleTest extends TestCase
                     ->jsonSerialize()
             )
         )
-            ->setTimezone($displayTz)
+            ->setTimezone($scheduleTz)
             ->startAt($firstHandoff);
 
-        foreach ($rrule->getNextRecurrences($firstHandoff, 7) as $index => $recurrence) {
+        foreach ($rrule->getNextRecurrences($firstHandoff, 7) as $idx => $recurrence) {
             $this->assertSame(
                 $displayTz,
                 $recurrence->getTimezone()->getName(),
@@ -226,7 +227,7 @@ class RRuleTest extends TestCase
             );
 
             $this->assertSame(
-                (clone $firstHandoff)->add(new DateInterval(sprintf('P%sD', $index)))->format('Y-m-d H:i:s'),
+                (clone $firstHandoff)->add(new DateInterval(sprintf('P%sD', $idx)))->format('Y-m-d H:i:s'),
                 $recurrence->format('Y-m-d H:i:s'),
                 'RRule does not correctly generate recurrences for the display timezone'
             );
