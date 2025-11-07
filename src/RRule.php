@@ -290,7 +290,7 @@ class RRule implements Frequency
         // not to count the recurrences that fail the constraint's test!
         $recurrences = $this->transformer->transform($this->rrule, $constraint, false);
         foreach ($recurrences as $recurrence) {
-            yield $recurrence->getStart();
+            yield $recurrence->getStart()->setTimezone($dateTime->getTimezone());
         }
 
         if ($limit > self::DEFAULT_LIMIT) {
