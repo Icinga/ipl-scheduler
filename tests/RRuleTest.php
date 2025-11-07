@@ -233,4 +233,43 @@ class RRuleTest extends TestCase
             );
         }
     }
+
+    public function testRruleWithByDayAndDifferentDisplayTimezone()
+    {
+        $scheduleTz = 'Europe/Berlin';
+        $dtStart = new DateTime('2025-11-07 05:30:00', new DateTimeZone($scheduleTz));
+
+        $displayTz = 'America/Los_Angeles';
+        $firstHandoff = (clone $dtStart)->setTimezone(new DateTimeZone($displayTz));
+
+        $rrule = RRule::fromJson(
+            json_encode(
+                (new RRule('FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,FR'))
+                    ->startAt($dtStart)
+                    ->jsonSerialize()
+            )
+        )
+            ->setTimezone($scheduleTz)
+            ->startAt($firstHandoff);
+
+        $assertionDates = [
+            new DateTime('2025-11-06 20:30:00', new DateTimeZone($displayTz)),
+            new DateTime('2025-11-09 20:30:00', new DateTimeZone($displayTz)),
+            new DateTime('2025-11-11 20:30:00', new DateTimeZone($displayTz))
+        ];
+
+        foreach ($rrule->getNextRecurrences($firstHandoff, 3) as $idx => $recurrence) {
+            $this->assertSame(
+                $displayTz,
+                $recurrence->getTimezone()->getName(),
+                'RRule does not generate recurrences in the correct timezone'
+            );
+
+            $this->assertSame(
+                $assertionDates[$idx]->format('Y-m-d H:i:s'),
+                $recurrence->format('Y-m-d H:i:s'),
+                'RRule does not correctly generate recurrences for the display timezone'
+            );
+        }
+    }
 }
