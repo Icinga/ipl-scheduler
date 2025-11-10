@@ -233,6 +233,8 @@ class RRule implements Frequency
     {
         $end = clone $end;
         $end->setTime($end->format('H'), $end->format('i'), $end->format('s'));
+        // In case end time uses a different tz than what the rrule internally does, we force it to use the same
+        $end->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
 
         $this->rrule->setUntil($end);
 
