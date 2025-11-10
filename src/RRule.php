@@ -188,6 +188,8 @@ class RRule implements Frequency
     public function setTimezone(string $timezone): self
     {
         $this->rrule->setTimezone($timezone);
+        $this->rrule->getStartDate()?->setTimezone(new DateTimeZone($timezone));
+        $this->rrule->getUntil()?->setTimezone(new DateTimeZone($timezone));
 
         return $this;
     }
