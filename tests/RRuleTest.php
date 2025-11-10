@@ -2,12 +2,11 @@
 
 namespace ipl\Tests\Scheduler;
 
+use DateInterval;
 use DateTime;
 use DateTimeZone;
-use ipl\Scheduler\Contract\Frequency;
 use ipl\Scheduler\RRule;
 use PHPUnit\Framework\TestCase;
-use Recurr\Exception\InvalidRRule;
 
 class RRuleTest extends TestCase
 {
@@ -199,6 +198,78 @@ class RRuleTest extends TestCase
             );
         } finally {
             date_default_timezone_set($oldTz);
+        }
+    }
+
+    public function testRruleWithDifferentDisplayTimezone()
+    {
+        $scheduleTz = 'Europe/Berlin';
+        $dtStart = new DateTime('2025-11-04 00:00:00', new DateTimeZone($scheduleTz));
+
+        $displayTz = 'America/New_York';
+        $firstHandoff = (clone $dtStart)->setTimezone(new DateTimeZone($displayTz));
+
+        $rrule = RRule::fromJson(
+            json_encode(
+                (new RRule('FREQ=' . RRule::DAILY))
+                    ->startAt($dtStart)
+                    ->jsonSerialize()
+            )
+        )
+            ->setTimezone($scheduleTz)
+            ->startAt($firstHandoff);
+
+        foreach ($rrule->getNextRecurrences($firstHandoff, 7) as $idx => $recurrence) {
+            $this->assertSame(
+                $displayTz,
+                $recurrence->getTimezone()->getName(),
+                'RRule does not generate recurrences in the correct timezone'
+            );
+
+            $this->assertSame(
+                (clone $firstHandoff)->add(new DateInterval(sprintf('P%sD', $idx)))->format('Y-m-d H:i:s'),
+                $recurrence->format('Y-m-d H:i:s'),
+                'RRule does not correctly generate recurrences for the display timezone'
+            );
+        }
+    }
+
+    public function testRruleWithByDayAndDifferentDisplayTimezone()
+    {
+        $scheduleTz = 'Europe/Berlin';
+        $dtStart = new DateTime('2025-11-07 05:30:00', new DateTimeZone($scheduleTz));
+
+        $displayTz = 'America/Los_Angeles';
+        $firstHandoff = (clone $dtStart)->setTimezone(new DateTimeZone($displayTz));
+
+        $rrule = RRule::fromJson(
+            json_encode(
+                (new RRule('FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,FR'))
+                    ->startAt($dtStart)
+                    ->jsonSerialize()
+            )
+        )
+            ->setTimezone($scheduleTz)
+            ->startAt($firstHandoff);
+
+        $assertionDates = [
+            new DateTime('2025-11-06 20:30:00', new DateTimeZone($displayTz)),
+            new DateTime('2025-11-09 20:30:00', new DateTimeZone($displayTz)),
+            new DateTime('2025-11-11 20:30:00', new DateTimeZone($displayTz))
+        ];
+
+        foreach ($rrule->getNextRecurrences($firstHandoff, 3) as $idx => $recurrence) {
+            $this->assertSame(
+                $displayTz,
+                $recurrence->getTimezone()->getName(),
+                'RRule does not generate recurrences in the correct timezone'
+            );
+
+            $this->assertSame(
+                $assertionDates[$idx]->format('Y-m-d H:i:s'),
+                $recurrence->format('Y-m-d H:i:s'),
+                'RRule does not correctly generate recurrences for the display timezone'
+            );
         }
     }
 }

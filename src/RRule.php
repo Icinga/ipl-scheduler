@@ -64,13 +64,12 @@ class RRule implements Frequency
      * Construct a new rrule instance
      *
      * @param string|array<string, mixed> $rule
-     * @param ?string                     $timezone
      *
      * @throws InvalidRRule
      */
-    public function __construct($rule, ?string $timezone = null)
+    public function __construct($rule)
     {
-        $this->rrule = new RecurrRule($rule, timezone: $timezone);
+        $this->rrule = new RecurrRule($rule);
         $this->frequency = $this->rrule->getFreqAsText();
         $this->transformerConfig = new ArrayTransformerConfig();
         $this->transformerConfig->setVirtualLimit(self::DEFAULT_LIMIT);
@@ -180,6 +179,22 @@ class RRule implements Frequency
     }
 
     /**
+     * Set timezone for the rrule
+     *
+     * @param string $timezone
+     *
+     * @return $this
+     */
+    public function setTimezone(string $timezone): self
+    {
+        $this->rrule->setTimezone($timezone);
+        $this->rrule->getStartDate()?->setTimezone(new DateTimeZone($timezone));
+        $this->rrule->getUntil()?->setTimezone(new DateTimeZone($timezone));
+
+        return $this;
+    }
+
+    /**
      * Set the start time of this frequency
      *
      * The given datetime will be cloned and microseconds removed since iCalendar datetimes only work to the second.
@@ -220,6 +235,8 @@ class RRule implements Frequency
     {
         $end = clone $end;
         $end->setTime($end->format('H'), $end->format('i'), $end->format('s'));
+        // In case end time uses a different tz than what the rrule internally does, we force it to use the same
+        $end->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
 
         $this->rrule->setUntil($end);
 
@@ -277,7 +294,7 @@ class RRule implements Frequency
         // not to count the recurrences that fail the constraint's test!
         $recurrences = $this->transformer->transform($this->rrule, $constraint, false);
         foreach ($recurrences as $recurrence) {
-            yield $recurrence->getStart();
+            yield $recurrence->getStart()->setTimezone($dateTime->getTimezone());
         }
 
         if ($limit > self::DEFAULT_LIMIT) {
