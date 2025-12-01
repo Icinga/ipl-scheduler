@@ -5,19 +5,19 @@ namespace ipl\Tests\Scheduler\Lib;
 use ipl\Scheduler\Common\TaskProperties;
 use ipl\Scheduler\Contract\Task;
 use Ramsey\Uuid\Uuid;
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 
 class PromiseBoundTask implements Task
 {
     use TaskProperties;
 
-    /** @var ExtendedPromiseInterface */
+    /** @var PromiseInterface */
     protected $promise;
 
     /** @var int  */
     protected $startedPromises = 0;
 
-    public function __construct(ExtendedPromiseInterface $promise)
+    public function __construct(PromiseInterface $promise)
     {
         $this->promise = $promise;
 
@@ -31,7 +31,7 @@ class PromiseBoundTask implements Task
         return $this->startedPromises;
     }
 
-    public function run(): ExtendedPromiseInterface
+    public function run(): PromiseInterface
     {
         $this->startedPromises++;
 
