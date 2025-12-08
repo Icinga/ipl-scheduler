@@ -11,7 +11,7 @@ use SplObjectStorage;
 trait Promises
 {
     /** @var SplObjectStorage<UuidInterface, ArrayObject<int, PromiseInterface>> */
-    protected $promises;
+    protected SplObjectStorage $promises;
 
     /**
      * Add the given promise for the specified UUID
