@@ -94,7 +94,7 @@ class RRule implements Frequency
      *
      * @return $this
      */
-    public static function fromFrequency(string $frequency): self
+    public static function fromFrequency(string $frequency): static
     {
         $frequencies = array_flip([
             static::MINUTELY,
@@ -185,7 +185,7 @@ class RRule implements Frequency
      *
      * @return $this
      */
-    public function setTimezone(string $timezone): self
+    public function setTimezone(string $timezone): static
     {
         $this->rrule->setTimezone($timezone);
         $this->rrule->getStartDate()?->setTimezone(new DateTimeZone($timezone));
@@ -203,7 +203,7 @@ class RRule implements Frequency
      *
      * @return $this
      */
-    public function startAt(DateTimeInterface $start): self
+    public function startAt(DateTimeInterface $start): static
     {
         $startDate = clone $start;
         // When the start time contains microseconds, the first recurrence will always be skipped, as
@@ -231,7 +231,7 @@ class RRule implements Frequency
      *
      * @return $this
      */
-    public function endAt(DateTimeInterface $end): self
+    public function endAt(DateTimeInterface $end): static
     {
         $end = clone $end;
         $end->setTime($end->format('H'), $end->format('i'), $end->format('s'));
