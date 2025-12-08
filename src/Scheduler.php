@@ -153,7 +153,7 @@ class Scheduler
      *
      * @throws InvalidArgumentException If the given task isn't scheduled
      */
-    public function remove(Task $task): self
+    public function remove(Task $task): static
     {
         if (! $this->hasTask($task)) {
             throw new InvalidArgumentException(sprintf('Task %s not scheduled', $task->getName()));
@@ -171,7 +171,7 @@ class Scheduler
      *
      * @return $this
      */
-    public function removeTasks(): self
+    public function removeTasks(): static
     {
         foreach ($this->tasks as $task) {
             $this->cancelTask($task);
@@ -202,7 +202,7 @@ class Scheduler
      *
      * @return $this
      */
-    public function schedule(Task $task, Frequency $frequency): self
+    public function schedule(Task $task, Frequency $frequency): static
     {
         $now = new DateTime();
         if ($frequency->isExpired($now)) {

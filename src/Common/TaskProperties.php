@@ -23,7 +23,7 @@ trait TaskProperties
      *
      * @return $this
      */
-    public function setDescription(?string $desc): self
+    public function setDescription(?string $desc): static
     {
         $this->description = $desc;
 
@@ -51,7 +51,7 @@ trait TaskProperties
      *
      * @return $this
      */
-    public function setName(string $name): self
+    public function setName(string $name): static
     {
         $this->name = $name;
 
@@ -74,7 +74,7 @@ trait TaskProperties
      *
      * @return $this
      */
-    public function setUuid(UuidInterface $uuid): self
+    public function setUuid(UuidInterface $uuid): static
     {
         $this->uuid = $uuid;
 

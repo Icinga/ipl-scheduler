@@ -25,7 +25,7 @@ trait Timers
      *
      * @return $this
      */
-    protected function attachTimer(UuidInterface $uuid, TimerInterface $timer): self
+    protected function attachTimer(UuidInterface $uuid, TimerInterface $timer): static
     {
         $this->timers->offsetSet($uuid, $timer);
 

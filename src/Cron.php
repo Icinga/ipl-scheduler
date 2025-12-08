@@ -98,7 +98,7 @@ class Cron implements Frequency
      *
      * @return $this
      */
-    public function startAt(DateTimeInterface $start): self
+    public function startAt(DateTimeInterface $start): static
     {
         $this->start = clone $start;
         $this->start->setTimezone(new DateTimeZone(date_default_timezone_get()));
