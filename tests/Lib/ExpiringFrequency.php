@@ -26,14 +26,14 @@ class ExpiringFrequency extends BaseTestFrequency
         return $this->expired;
     }
 
-    public function setExpired(bool $value = true): self
+    public function setExpired(bool $value = true): static
     {
         $this->expired = $value;
 
         return $this;
     }
 
-    public function endAt(DateTimeInterface $dateTime): self
+    public function endAt(DateTimeInterface $dateTime): static
     {
         $this->end = $dateTime;
 
