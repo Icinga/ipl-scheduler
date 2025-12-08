@@ -20,16 +20,16 @@ class Cron implements Frequency
     public const PART_WEEKDAY = 4;
 
     /** @var CronExpression */
-    protected $cron;
+    protected CronExpression $cron;
 
     /** @var ?DateTimeInterface Start time of this frequency */
-    protected $start;
+    protected ?DateTimeInterface $start;
 
     /** @var ?DateTimeInterface End time of this frequency */
-    protected $end;
+    protected ?DateTimeInterface $end;
 
     /** @var string String representation of the cron expression */
-    protected $expression;
+    protected string $expression;
 
     /**
      * Create frequency from the specified cron expression
