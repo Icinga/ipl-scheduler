@@ -49,16 +49,16 @@ class RRule implements Frequency
     private const DEFAULT_LIMIT = 1;
 
     /** @var RecurrRule */
-    protected $rrule;
+    protected RecurrRule $rrule;
 
     /** @var ArrayTransformer */
-    protected $transformer;
+    protected ArrayTransformer $transformer;
 
     /** @var ArrayTransformerConfig */
-    protected $transformerConfig;
+    protected ArrayTransformerConfig $transformerConfig;
 
     /** @var string */
-    protected $frequency;
+    protected string $frequency;
 
     /**
      * Construct a new rrule instance
@@ -67,7 +67,7 @@ class RRule implements Frequency
      *
      * @throws InvalidRRule
      */
-    public function __construct($rule)
+    public function __construct(array|string $rule)
     {
         $this->rrule = new RecurrRule($rule);
         $this->frequency = $this->rrule->getFreqAsText();
