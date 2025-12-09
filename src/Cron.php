@@ -162,7 +162,7 @@ class Cron implements Frequency
         return CronExpression::isValidExpression($expression);
     }
 
-    public static function fromJson(string $json): Frequency
+    public static function fromJson(string $json): static
     {
         $data = json_decode($json, true);
         if (! is_array($data)) {
