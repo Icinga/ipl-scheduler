@@ -23,10 +23,10 @@ class Cron implements Frequency
     protected CronExpression $cron;
 
     /** @var ?DateTimeInterface Start time of this frequency */
-    protected ?DateTimeInterface $start;
+    protected ?DateTimeInterface $start = null;
 
     /** @var ?DateTimeInterface End time of this frequency */
-    protected ?DateTimeInterface $end;
+    protected ?DateTimeInterface $end = null;
 
     /** @var string String representation of the cron expression */
     protected string $expression;
