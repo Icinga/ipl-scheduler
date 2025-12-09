@@ -123,7 +123,7 @@ class RRule implements Frequency
         return $self;
     }
 
-    public static function fromJson(string $json): Frequency
+    public static function fromJson(string $json): static
     {
         /** @var stdClass $data */
         $data = json_decode($json);
