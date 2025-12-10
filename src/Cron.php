@@ -113,7 +113,7 @@ class Cron implements Frequency
      *
      * @return $this
      */
-    public function endAt(DateTimeInterface $end): Frequency
+    public function endAt(DateTimeInterface $end): static
     {
         $this->end = clone $end;
         $this->end->setTimezone(new DateTimeZone(date_default_timezone_get()));
