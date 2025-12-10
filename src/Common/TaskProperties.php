@@ -7,14 +7,14 @@ use Ramsey\Uuid\UuidInterface;
 
 trait TaskProperties
 {
-    /** @var string */
-    protected string $description;
+    /** @var ?string */
+    protected ?string $description = null;
 
-    /** @var string Name of this task */
-    protected string $name;
+    /** @var ?string Name of this task */
+    protected ?string $name = null;
 
-    /** @var UuidInterface Unique identifier of this task */
-    protected UuidInterface $uuid;
+    /** @var ?UuidInterface Unique identifier of this task */
+    protected ?UuidInterface $uuid = null;
 
     /**
      * Set the description of this task
