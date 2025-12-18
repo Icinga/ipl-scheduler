@@ -14,7 +14,7 @@ use ipl\Tests\Scheduler\Lib\TaskRejectedException;
 use PHPUnit\Framework\TestCase;
 use React\EventLoop\Loop;
 use React\Promise;
-use React\Promise\ExtendedPromiseInterface;
+use React\Promise\PromiseInterface;
 use Throwable;
 
 class SchedulerTest extends TestCase
@@ -38,7 +38,7 @@ class SchedulerTest extends TestCase
 
     public function testSchedulingTasksNotYetDue()
     {
-        $task = new PromiseBoundTask(Promise\resolve());
+        $task = new PromiseBoundTask(Promise\resolve(null));
         $nextDue = new DateTime('+1 week');
 
         $scheduledAt = null;
@@ -60,12 +60,12 @@ class SchedulerTest extends TestCase
     public function testDoesNotScheduleNeverDueTasks()
     {
         $neverRun = true;
-        $task = new PromiseBoundTask(Promise\resolve());
+        $task = new PromiseBoundTask(Promise\resolve(null));
         $this->scheduler
             ->schedule($task, new NeverDueFrequency())
             ->on(
                 CountableScheduler::ON_TASK_RUN,
-                function (Task $_, ExtendedPromiseInterface $p) use (&$neverRun): void {
+                function (Task $_, PromiseInterface $p) use (&$neverRun): void {
                     $neverRun = false;
                 }
             );
@@ -82,12 +82,12 @@ class SchedulerTest extends TestCase
     public function testDueTasksRunImmediately()
     {
         $hasRun = false;
-        $task = new PromiseBoundTask(Promise\resolve());
+        $task = new PromiseBoundTask(Promise\resolve(null));
         $this->scheduler
             ->schedule($task, new ImmediateDueFrequency())
             ->on(
                 CountableScheduler::ON_TASK_RUN,
-                function (Task $t, ExtendedPromiseInterface $_) use (&$hasRun): void {
+                function (Task $t, PromiseInterface $_) use (&$hasRun): void {
                     $hasRun = true;
                 }
             );
@@ -174,7 +174,7 @@ class SchedulerTest extends TestCase
             ->schedule($task, new ImmediateDueFrequency())
             ->on(
                 CountableScheduler::ON_TASK_RUN,
-                function (Task $_, ExtendedPromiseInterface $p) use ($deferred): void {
+                function (Task $_, PromiseInterface $p) use ($deferred): void {
                     $deferred->reject(new TaskRejectedException('rejected'));
                 }
             )
@@ -208,7 +208,7 @@ class SchedulerTest extends TestCase
             ->schedule($task, new ImmediateDueFrequency())
             ->on(
                 CountableScheduler::ON_TASK_RUN,
-                function (Task $_, ExtendedPromiseInterface $p) use ($deferred): void {
+                function (Task $_, PromiseInterface $p) use ($deferred): void {
                     $deferred->resolve(10);
                 }
             )
@@ -232,8 +232,8 @@ class SchedulerTest extends TestCase
 
     public function testCountsWithMultipleScheduledTasks()
     {
-        $task1 = new PromiseBoundTask(Promise\resolve());
-        $task2 = new PromiseBoundTask(Promise\resolve());
+        $task1 = new PromiseBoundTask(Promise\resolve(null));
+        $task2 = new PromiseBoundTask(Promise\resolve(null));
         $task3 = new PromiseBoundTask((new Promise\Deferred())->promise());
 
         $this->scheduler
@@ -255,7 +255,7 @@ class SchedulerTest extends TestCase
 
     public function testDoesNotScheduleExpiredTasks()
     {
-        $task = new PromiseBoundTask(Promise\resolve());
+        $task = new PromiseBoundTask(Promise\resolve(null));
         $frequency = new ExpiringFrequency();
         $frequency->setExpired();
 
@@ -284,7 +284,7 @@ class SchedulerTest extends TestCase
             })
             ->on(
                 CountableScheduler::ON_TASK_RUN,
-                function (Task $t, ExtendedPromiseInterface $_) use ($deferred, $frequency): void {
+                function (Task $t, PromiseInterface $_) use ($deferred, $frequency): void {
                     $frequency->setExpired();
 
                     Loop::addTimer(0, function ($timer) use ($deferred): void {
@@ -314,10 +314,10 @@ class SchedulerTest extends TestCase
             ->schedule($task, new OneOff(new DateTime('+1 milliseconds')))
             ->on(
                 CountableScheduler::ON_TASK_RUN,
-                function (Task $t, ExtendedPromiseInterface $_) use (&$countRuns, $deferred): void {
+                function (Task $t, PromiseInterface $_) use (&$countRuns, $deferred): void {
                     $countRuns += 1;
 
-                    $deferred->resolve();
+                    $deferred->resolve(null);
                 }
             );
 
