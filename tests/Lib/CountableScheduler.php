@@ -15,7 +15,7 @@ class CountableScheduler extends Scheduler implements Countable
 
     public function countPromises(UuidInterface $uuid): int
     {
-        if (! $this->promises->contains($uuid)) {
+        if (! $this->promises->offsetExists($uuid)) {
             return 0;
         }
 
