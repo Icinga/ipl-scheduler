@@ -4,14 +4,15 @@ namespace ipl\Scheduler\Common;
 
 use ArrayObject;
 use InvalidArgumentException;
+use LogicException;
 use Ramsey\Uuid\UuidInterface;
 use React\Promise\PromiseInterface;
 use SplObjectStorage;
 
 trait Promises
 {
-    /** @var SplObjectStorage<UuidInterface, ArrayObject<int, PromiseInterface>> */
-    protected $promises;
+    /** @var ?SplObjectStorage<UuidInterface, ArrayObject<int, PromiseInterface>> */
+    protected ?SplObjectStorage $promises = null;
 
     /**
      * Add the given promise for the specified UUID
@@ -28,8 +29,12 @@ trait Promises
      *
      * @return $this
      */
-    protected function addPromise(UuidInterface $uuid, PromiseInterface $promise): self
+    protected function addPromise(UuidInterface $uuid, PromiseInterface $promise): static
     {
+        if (! $this->promises) {
+            throw new LogicException('Promises must not be null');
+        }
+
         if (! $this->promises->offsetExists($uuid)) {
             $this->promises->offsetSet($uuid, new ArrayObject());
         }
@@ -45,7 +50,7 @@ trait Promises
      * **Example Usage:**
      *
      * ```php
-     * $promise->always(function () use ($uuid, $promise) {
+     * $promise->finally(function () use ($uuid, $promise) {
      *     $promises->removePromise($uuid, $promise);
      * })
      * ```
@@ -58,8 +63,12 @@ trait Promises
      * @throws InvalidArgumentException If the given UUID doesn't have any registered promises or when the specified
      *                                  UUID promises doesn't contain the provided promise
      */
-    protected function removePromise(UuidInterface $uuid, PromiseInterface $promise): self
+    protected function removePromise(UuidInterface $uuid, PromiseInterface $promise): static
     {
+        if (! $this->promises) {
+            throw new LogicException('Promises must not be null');
+        }
+
         if (! $this->promises->offsetExists($uuid)) {
             throw new InvalidArgumentException(
                 sprintf('There are no registered promises for UUID %s', $uuid->toString())
@@ -96,6 +105,10 @@ trait Promises
      */
     protected function detachPromises(UuidInterface $uuid): array
     {
+        if (! $this->promises) {
+            throw new LogicException('Promises must not be null');
+        }
+
         if (! $this->promises->offsetExists($uuid)) {
             return [];
         }

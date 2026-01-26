@@ -28,7 +28,7 @@ abstract class BaseTestFrequency implements Frequency
         return null;
     }
 
-    public static function fromJson(string $json): Frequency
+    public static function fromJson(string $json): static
     {
         throw new LogicException('Not implemented');
     }
