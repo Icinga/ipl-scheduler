@@ -10,6 +10,7 @@ use ipl\Scheduler\Contract\Frequency;
 use ipl\Scheduler\Contract\Task;
 use ipl\Stdlib\Events;
 use React\EventLoop\Loop;
+use React\EventLoop\TimerInterface;
 use React\Promise;
 use React\Promise\PromiseInterface;
 use SplObjectStorage;
@@ -283,7 +284,9 @@ class Scheduler
      */
     protected function cancelTask(Task $task): void
     {
-        Loop::cancelTimer($this->detachTimer($task->getUuid()));
+        /** @var TimerInterface $timer */
+        $timer = $this->detachTimer($task->getUuid());
+        Loop::cancelTimer($timer);
 
         /** @var PromiseInterface[] $promises */
         $promises = $this->detachPromises($task->getUuid());
