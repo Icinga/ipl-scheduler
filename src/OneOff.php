@@ -46,7 +46,7 @@ class OneOff implements Frequency
         return $this->getStart();
     }
 
-    public static function fromJson(string $json): Frequency
+    public static function fromJson(string $json): static
     {
         $data = json_decode($json, true);
         if (! is_string($data)) {

@@ -28,7 +28,7 @@ trait Promises
      *
      * @return $this
      */
-    protected function addPromise(UuidInterface $uuid, PromiseInterface $promise): self
+    protected function addPromise(UuidInterface $uuid, PromiseInterface $promise): static
     {
         if (! $this->promises->offsetExists($uuid)) {
             $this->promises->offsetSet($uuid, new ArrayObject());
@@ -58,7 +58,7 @@ trait Promises
      * @throws InvalidArgumentException If the given UUID doesn't have any registered promises or when the specified
      *                                  UUID promises doesn't contain the provided promise
      */
-    protected function removePromise(UuidInterface $uuid, PromiseInterface $promise): self
+    protected function removePromise(UuidInterface $uuid, PromiseInterface $promise): static
     {
         if (! $this->promises->offsetExists($uuid)) {
             throw new InvalidArgumentException(
