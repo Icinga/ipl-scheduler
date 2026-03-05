@@ -125,7 +125,7 @@ class Scheduler
     public const ON_TASK_EXPIRED = 'task-expired';
 
     /** @var SplObjectStorage<Task, null> The scheduled tasks of this scheduler */
-    protected $tasks;
+    protected SplObjectStorage $tasks;
 
     public function __construct()
     {
