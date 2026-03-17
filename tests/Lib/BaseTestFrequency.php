@@ -13,11 +13,6 @@ abstract class BaseTestFrequency implements Frequency
         return true;
     }
 
-    public function isExpired(DateTimeInterface $dateTime): bool
-    {
-        return false;
-    }
-
     public function getStart(): ?DateTimeInterface
     {
         return null;

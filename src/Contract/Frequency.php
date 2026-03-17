@@ -39,15 +39,6 @@ interface Frequency extends JsonSerializable
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface;
 
     /**
-     * Get whether the specified time is beyond the frequency's expiry time
-     *
-     * @param DateTimeInterface $dateTime
-     *
-     * @return bool
-     */
-    public function isExpired(DateTimeInterface $dateTime): bool;
-
-    /**
      * Get the start time of this frequency
      *
      * @return ?DateTimeInterface
