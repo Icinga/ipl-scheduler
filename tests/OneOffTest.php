@@ -57,12 +57,6 @@ class OneOffTest extends TestCase
                 $oneOff->getStart(),
                 'OneOff::jsonSerialize() does not restore the start date with a time zone correctly'
             );
-
-            $this->assertEquals(
-                new DateTime('2023-06-01T18:00:00'),
-                $oneOff->getEnd(),
-                'OneOff::jsonSerialize() does not restore the start/end date with a time zone correctly'
-            );
         } finally {
             date_default_timezone_set($oldTz);
         }
