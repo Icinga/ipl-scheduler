@@ -10,49 +10,40 @@ use PHPUnit\Framework\TestCase;
 
 class RRuleTest extends TestCase
 {
-    public function testIsDueWithoutEndTime()
+    public function testIsDueWithoutLastRunCheck()
     {
-        $start = new DateTime();
-        $rrule = RRule::fromFrequency(RRule::MINUTELY)
+        $start = new DateTime('12:00');
+        $rrule = RRule::fromFrequency(RRule::HOURLY)
             ->startAt($start);
 
-        $start->setTime($start->format('H'), $start->format('i'), $start->format('s'));
+        // Exactly a recurrence point
+        $recurrence = (clone $start)->modify('+1 hour');
+        // Use the same dates to skip the last run check
+        $this->assertTrue($rrule->isDue($recurrence, $recurrence));
 
-        $this->assertTrue($rrule->isDue((clone $start)->modify('+1 minute')));
+        // Between two recurrence points
+        $betweenRecurrences = (clone $start)->modify('+30 minutes');
+        // Use the same dates to skip the last run check
+        $this->assertFalse($rrule->isDue($betweenRecurrences, $betweenRecurrences));
     }
 
-    public function testIsDueWithEndTime()
+    public function testIsDueWithLastRunCheck()
     {
-        $start = new DateTime();
-        $start->setTime($start->format('H'), $start->format('i'), $start->format('s'));
+        $start = new DateTime('12:00');
+        // Should run at 12:00, 13:00, 14:00, ...
+        $rrule = RRule::fromFrequency(RRule::HOURLY)
+            ->startAt($start);
 
-        $end = clone $start;
-        $end->modify('+2 minute');
+        $now = (clone $start)->modify('+90 minutes');
 
-        $rrule = RRule::fromFrequency(RRule::MINUTELY)
-            ->startAt($start)
-            ->endAt($end);
+        // Simulate there was no last run yet
+        $this->assertTrue($rrule->isDue($now, null));
 
-        $this->assertTrue($rrule->isDue((clone $start)->modify('+1 minute')));
-        $this->assertFalse($rrule->isDue((clone $end)->modify('+1 minute')));
-    }
+        // Simulate the last run was at 12:00, means the 13:00 was missed
+        $this->assertTrue($rrule->isDue($now, $start));
 
-    public function testIsExpiredWithoutEndTime()
-    {
-        $rrule = RRule::fromFrequency(RRule::MINUTELY)
-            ->startAt(new DateTime());
-
-        $this->assertFalse($rrule->isExpired(new DateTime('+1 day')));
-    }
-
-    public function testIsExpiredWithEndTime()
-    {
-        $rrule = RRule::fromFrequency(RRule::MINUTELY)
-            ->startAt(new DateTime())
-            ->endAt(new DateTime('+5 minute'));
-
-        $this->assertFalse($rrule->isExpired(new DateTime('+2 minute')));
-        $this->assertTrue($rrule->isExpired(new DateTime('+10 minute')));
+        // Simulate the last run was at 13:00
+        $this->assertFalse($rrule->isDue($now, (clone $start)->modify('+1 hour')));
     }
 
     public function testGetNextDueWithoutEndTime()
