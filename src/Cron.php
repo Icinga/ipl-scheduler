@@ -44,13 +44,17 @@ class Cron implements Frequency
         $this->expression = $expression;
     }
 
-    public function isDue(DateTimeInterface $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime, ?DateTimeInterface $lastRun = null): bool
     {
-        if ($this->isExpired($dateTime) || $dateTime < $this->start) {
-            return false;
+        if ($lastRun === null) {
+            return true;
         }
 
-        return $this->cron->isDue($dateTime);
+        return
+            // If the next scheduled run after $lastRun is before $dateTime, a run was missed
+            $this->cron->getNextRunDate($lastRun) < $dateTime
+            // Otherwise check if the expression matches right now
+            || $this->cron->isDue($dateTime);
     }
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
