@@ -9,7 +9,7 @@ use SplObjectStorage;
 trait Timers
 {
     /** @var SplObjectStorage<UuidInterface, TimerInterface> */
-    protected $timers;
+    protected SplObjectStorage $timers;
 
     /**
      * Set a timer for the given UUID
@@ -25,7 +25,7 @@ trait Timers
      *
      * @return $this
      */
-    protected function attachTimer(UuidInterface $uuid, TimerInterface $timer): self
+    protected function attachTimer(UuidInterface $uuid, TimerInterface $timer): static
     {
         $this->timers->offsetSet($uuid, $timer);
 
