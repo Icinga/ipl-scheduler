@@ -32,11 +32,6 @@ class OneOff implements Frequency
         return $this->dateTime;
     }
 
-    public function isExpired(DateTimeInterface $dateTime): bool
-    {
-        return $this->dateTime < $dateTime;
-    }
-
     public function getStart(): ?DateTimeInterface
     {
         return $this->dateTime;

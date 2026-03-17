@@ -3,34 +3,27 @@
 namespace ipl\Tests\Scheduler\Lib;
 
 use DateTimeInterface;
+use ipl\Scheduler\Common\FrequencyStatus;
 
 class ExpiringFrequency extends BaseTestFrequency
 {
-    /** @var bool */
-    protected $expired = false;
-
-    /** @var DateTimeInterface */
+    /** @var ?DateTimeInterface */
     protected $end;
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
-        if ($this->isExpired($dateTime)) {
+        if (FrequencyStatus::fromFrequency($this, $dateTime) === FrequencyStatus::EXPIRED) {
             return $this->end;
         }
 
-        return $dateTime;
+        // Return a future time so the scheduler sets up a timer instead of hitting the
+        // $nextDue <= $now early return, which would prevent the $loop callback from running.
+        return (clone $dateTime)->modify('+1 second');
     }
 
-    public function isExpired(DateTimeInterface $dateTime): bool
+    public function getEnd(): ?DateTimeInterface
     {
-        return $this->expired;
-    }
-
-    public function setExpired(bool $value = true): static
-    {
-        $this->expired = $value;
-
-        return $this;
+        return $this->end;
     }
 
     public function endAt(DateTimeInterface $dateTime): static

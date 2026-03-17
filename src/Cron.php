@@ -7,6 +7,7 @@ use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
 use InvalidArgumentException;
+use ipl\Scheduler\Common\FrequencyStatus;
 use ipl\Scheduler\Contract\Frequency;
 
 use function ipl\Stdlib\get_php_type;
@@ -59,7 +60,7 @@ class Cron implements Frequency
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
-        if ($this->isExpired($dateTime)) {
+        if (FrequencyStatus::fromFrequency($this, $dateTime) === FrequencyStatus::EXPIRED) {
             return $this->end;
         }
 
@@ -68,11 +69,6 @@ class Cron implements Frequency
         }
 
         return $this->cron->getNextRunDate($dateTime);
-    }
-
-    public function isExpired(DateTimeInterface $dateTime): bool
-    {
-        return $this->end !== null && $this->end < $dateTime;
     }
 
     public function getStart(): ?DateTimeInterface

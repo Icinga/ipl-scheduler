@@ -8,6 +8,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Generator;
 use InvalidArgumentException;
+use ipl\Scheduler\Common\FrequencyStatus;
 use ipl\Scheduler\Contract\Frequency;
 use Recurr\Exception\InvalidRRule;
 use Recurr\Rule as RecurrRule;
@@ -166,7 +167,7 @@ class RRule implements Frequency
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
-        if ($this->isExpired($dateTime)) {
+        if (FrequencyStatus::fromFrequency($this, $dateTime) === FrequencyStatus::EXPIRED) {
             return $this->getEnd();
         }
 
@@ -176,15 +177,6 @@ class RRule implements Frequency
         }
 
         return $nextDue->current();
-    }
-
-    public function isExpired(DateTimeInterface $dateTime): bool
-    {
-        if ($this->rrule->repeatsIndefinitely()) {
-            return false;
-        }
-
-        return $this->getEnd() !== null && $this->getEnd() < $dateTime;
     }
 
     /**
