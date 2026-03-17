@@ -141,18 +141,27 @@ class RRule implements Frequency
         return $self;
     }
 
-    public function isDue(DateTimeInterface $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime, ?DateTimeInterface $lastRun = null): bool
     {
-        if ($dateTime < $this->rrule->getStartDate() || $this->isExpired($dateTime)) {
+        if ($lastRun === null) {
+            return true;
+        }
+
+        $lastRunNextDue = $this->getNextRecurrences($lastRun, 1, false);
+        if (! $lastRunNextDue->valid()) {
             return false;
         }
 
+        // If the next recurrence based on $lastRun is before $dateTime,
+        // there is definitely a missed run, so the recurrence rule is due.
+        if ($lastRunNextDue->current() < $dateTime) {
+            return true;
+        }
+
+        // If there are no missed runs, check if $dateTime itself is a recurrence point
         $nextDue = $this->getNextRecurrences($dateTime);
-        if (! $nextDue->valid()) {
-            return false;
-        }
 
-        return $nextDue->current() == $dateTime;
+        return $nextDue->valid() && $nextDue->current() == $dateTime;
     }
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface

@@ -21,9 +21,10 @@ class OneOff implements Frequency
         $this->dateTime->setTimezone(new DateTimeZone(date_default_timezone_get()));
     }
 
-    public function isDue(DateTimeInterface $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime, ?DateTimeInterface $lastRun = null): bool
     {
-        return ! $this->isExpired($dateTime) && $this->dateTime == $dateTime;
+        // If there was no last run, this frequency is due
+        return $lastRun === null;
     }
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
@@ -43,7 +44,7 @@ class OneOff implements Frequency
 
     public function getEnd(): ?DateTimeInterface
     {
-        return $this->getStart();
+        return null;
     }
 
     public static function fromJson(string $json): static
