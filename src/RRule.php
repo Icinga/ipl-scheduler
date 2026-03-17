@@ -148,9 +148,19 @@ class RRule implements Frequency
             return true;
         }
 
-        $lastRunNextDue = $this->getNextRecurrences($lastRun, 1, false);
+        $lastRunNextDue = $this->getNextRecurrences($lastRun, 2);
         if (! $lastRunNextDue->valid()) {
             return false;
+        }
+
+        // Skip the result if it equals $lastRun — we want strictly after. The recurrences are
+        // fetched with $include=true to ensure the end date boundary is part of the result set.
+        // As a consequence, $lastRun itself may be included and needs to be skipped.
+        if ($lastRunNextDue->current() == $lastRun) {
+            $lastRunNextDue->next();
+            if (! $lastRunNextDue->valid()) {
+                return false;
+            }
         }
 
         // If the next recurrence based on $lastRun is before $dateTime,
@@ -171,9 +181,15 @@ class RRule implements Frequency
             return $this->getEnd();
         }
 
-        $nextDue = $this->getNextRecurrences($dateTime, 1, false);
-        if (! $nextDue->valid()) {
-            return $dateTime;
+        $nextDue = $this->getNextRecurrences($dateTime, 2);
+        // Skip the result if it equals $dateTime — we want strictly after. The recurrences are
+        // fetched with $include=true to ensure the end date boundary is part of the result set.
+        // As a consequence, $dateTime itself may be included and needs to be skipped.
+        if ($nextDue->current() == $dateTime) {
+            $nextDue->next();
+            if (! $nextDue->valid()) {
+                return $dateTime;
+            }
         }
 
         return $nextDue->current();
@@ -262,9 +278,13 @@ class RRule implements Frequency
     /**
      * Get a set of recurrences relative to the given time
      *
+     * The `$include` parameter controls whether `$dateTime` is included in the result set.
+     * If the rrule has an end date, `$include` also determines whether the end date boundary
+     * is included, as both boundaries of the constraint use the same inclusivity setting.
+     *
      * @param DateTimeInterface $dateTime
      * @param int $limit Limit the recurrences to be generated to the given value
-     * @param bool $include Whether to include the passed time in the result set
+     * @param bool $include Whether to include the passed date and frequency end date in the result set
      *
      * @return Generator<DateTimeInterface>
      */
