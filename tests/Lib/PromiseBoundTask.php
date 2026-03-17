@@ -2,6 +2,7 @@
 
 namespace ipl\Tests\Scheduler\Lib;
 
+use DateTimeInterface;
 use ipl\Scheduler\Common\TaskProperties;
 use ipl\Scheduler\Contract\Task;
 use Ramsey\Uuid\Uuid;
@@ -29,6 +30,11 @@ class PromiseBoundTask implements Task
     public function getStartedPromises(): int
     {
         return $this->startedPromises;
+    }
+
+    public function getLastRun(): DateTimeInterface|false|null
+    {
+        return false;
     }
 
     public function run(): PromiseInterface

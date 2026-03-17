@@ -2,6 +2,7 @@
 
 namespace ipl\Scheduler\Contract;
 
+use DateTimeInterface;
 use Ramsey\Uuid\UuidInterface;
 use React\Promise\PromiseInterface;
 
@@ -27,6 +28,13 @@ interface Task
      * @return ?string
      */
     public function getDescription(): ?string;
+
+    /**
+     * Get the last run of this task
+     *
+     * @return DateTimeInterface|false|null Null if there was no last run and false if the last run is not provided
+     */
+    public function getLastRun(): DateTimeInterface|false|null;
 
     /**
      * Run this tasks operations
