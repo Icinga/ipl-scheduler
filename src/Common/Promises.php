@@ -8,6 +8,11 @@ use Ramsey\Uuid\UuidInterface;
 use React\Promise\PromiseInterface;
 use SplObjectStorage;
 
+/**
+ * Tracks pending {@see PromiseInterface promises} per UUID
+ *
+ * Provides helpers to add, remove, and detach promises keyed by a {@see UuidInterface}.
+ */
 trait Promises
 {
     /** @var SplObjectStorage<UuidInterface, ArrayObject<int, PromiseInterface>> */
@@ -18,10 +23,8 @@ trait Promises
      *
      * **Example Usage:**
      *
-     * ```php
-     * $promise = work();
-     * $promises->addPromise($uuid, $promise);
-     * ```
+     *     $promise = work();
+     *     $promises->addPromise($uuid, $promise);
      *
      * @param UuidInterface $uuid
      * @param PromiseInterface $promise
@@ -44,11 +47,9 @@ trait Promises
      *
      * **Example Usage:**
      *
-     * ```php
-     * $promise->finally(function () use ($uuid, $promise) {
-     *     $promises->removePromise($uuid, $promise);
-     * })
-     * ```
+     *     $promise->finally(function () use ($uuid, $promise) {
+     *         $promises->removePromise($uuid, $promise);
+     *     })
      *
      * @param UuidInterface $uuid
      * @param PromiseInterface $promise
@@ -84,11 +85,9 @@ trait Promises
      *
      * **Example Usage:**
      *
-     * ```php
-     * foreach ($promises->detachPromises($uuid) as $promise) {
-     *     $promise->cancel();
-     * }
-     * ```
+     *     foreach ($promises->detachPromises($uuid) as $promise) {
+     *         $promise->cancel();
+     *     }
      *
      * @param UuidInterface $uuid
      *

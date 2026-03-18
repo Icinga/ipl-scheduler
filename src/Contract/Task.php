@@ -5,6 +5,12 @@ namespace ipl\Scheduler\Contract;
 use Ramsey\Uuid\UuidInterface;
 use React\Promise\PromiseInterface;
 
+/**
+ * Contract for a schedulable task
+ *
+ * A task encapsulates a named, uniquely identified unit of work that can be executed
+ * by the scheduler via {@see Task::run()}.
+ */
 interface Task
 {
     /**
@@ -29,9 +35,19 @@ interface Task
     public function getDescription(): ?string;
 
     /**
-     * Run this tasks operations
+     * Execute this task and return a promise for the result
      *
-     * This commits the actions in a non-blocking fashion to the event loop and yields a deferred promise
+     * There are two valid implementation patterns:
+     *
+     * - Async: commit work to the event loop and return a *pending* promise
+     *   that resolves or rejects upon completion. This is the preferred pattern
+     *   for I/O-bound or long-running work.
+     *
+     * - Synchronous: return an already-resolved or already-rejected promise
+     *   when the result is known immediately (e.g. from cache or trivial logic).
+     *
+     * Either way, implementations MUST NOT perform blocking I/O or CPU-intensive
+     * work that would stall the event loop.
      *
      * @return PromiseInterface
      */

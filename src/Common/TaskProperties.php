@@ -5,15 +5,18 @@ namespace ipl\Scheduler\Common;
 use LogicException;
 use Ramsey\Uuid\UuidInterface;
 
+/**
+ * Common property helpers for {@see \ipl\Scheduler\Contract\Task} implementations
+ *
+ * Provides storage and accessors for the name, description, and UUID of a task.
+ * Getters throw a {@see LogicException} when the corresponding property has not been set.
+ */
 trait TaskProperties
 {
-    /** @var ?string */
     protected ?string $description = null;
 
-    /** @var ?string Name of this task */
     protected ?string $name = null;
 
-    /** @var ?UuidInterface Unique identifier of this task */
     protected ?UuidInterface $uuid = null;
 
     /**
@@ -30,11 +33,23 @@ trait TaskProperties
         return $this;
     }
 
+    /**
+     * Get the description of this task
+     *
+     * @return ?string
+     */
     public function getDescription(): ?string
     {
         return $this->description;
     }
 
+    /**
+     * Get the name of this task
+     *
+     * @return string
+     *
+     * @throws LogicException If the name has not been set
+     */
     public function getName(): string
     {
         if (! $this->name) {
@@ -45,7 +60,7 @@ trait TaskProperties
     }
 
     /**
-     * Set the name of this Task
+     * Set the name of this task
      *
      * @param string $name
      *
@@ -58,6 +73,13 @@ trait TaskProperties
         return $this;
     }
 
+    /**
+     * Get the unique identifier of this task
+     *
+     * @return UuidInterface
+     *
+     * @throws LogicException If the UUID has not been set
+     */
     public function getUuid(): UuidInterface
     {
         if (! $this->uuid) {
