@@ -218,8 +218,8 @@ class RRule implements Frequency
     public function setTimezone(string $timezone): static
     {
         $this->rrule->setTimezone($timezone);
-        $this->rrule->getStartDate()?->setTimezone(new DateTimeZone($timezone));
-        $this->rrule->getUntil()?->setTimezone(new DateTimeZone($timezone));
+        $this->alignTimezone($this->rrule->getStartDate());
+        $this->alignTimezone($this->rrule->getUntil());
 
         return $this;
     }
@@ -239,8 +239,7 @@ class RRule implements Frequency
         // When the start time contains microseconds, the first recurrence will always be skipped, as
         // the transformer operates only up to seconds level. See also the upstream issue #155
         $startDate->setTime($start->format('H'), $start->format('i'), $start->format('s'));
-        // In case start time uses a different tz than what the rrule internally does, we force it to use the same
-        $startDate->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
+        $this->alignTimezone($startDate);
 
         $this->rrule->setStartDate($startDate);
 
@@ -265,8 +264,7 @@ class RRule implements Frequency
     {
         $end = clone $end;
         $end->setTime($end->format('H'), $end->format('i'), $end->format('s'));
-        // In case end time uses a different tz than what the rrule internally does, we force it to use the same
-        $end->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
+        $this->alignTimezone($end);
 
         $this->rrule->setUntil($end);
 
@@ -360,6 +358,21 @@ class RRule implements Frequency
         }
 
         return $data;
+    }
+
+    /**
+     * Align a datetime to the rrule's configured timezone in place
+     *
+     * Recurr requires all dates (start, until) to share the rrule's own timezone,
+     * otherwise recurrences are calculated against the wrong UTC offset.
+     *
+     * @param ?DateTime $dateTime
+     *
+     * @return void
+     */
+    protected function alignTimezone(?DateTime $dateTime): void
+    {
+        $dateTime?->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
     }
 
     /**
