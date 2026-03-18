@@ -327,7 +327,7 @@ class Scheduler
                 $this->emit(self::ON_TASK_FAILED, [$task, $reason]);
             }
         )->finally(function () use ($task, $promise): void {
-            // Unregister the promise without canceling it as it's already resolved
+            // Unregister without canceling; the promise is already resolved.
             $this->removePromise($task->getUuid(), $promise);
         });
     }

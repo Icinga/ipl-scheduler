@@ -81,8 +81,8 @@ class RRule implements Frequency
         $this->transformerConfig = new ArrayTransformerConfig();
         $this->transformerConfig->setVirtualLimit(self::DEFAULT_LIMIT);
 
-        // If the run day isn't set explicitly, we can enable the last day of month
-        // fix, so that it doesn't skip some months which doesn't have e.g. 29,30,31 days.
+        // If no specific run day is set, enable the "last-day-of-month fix"
+        // to avoid skipping months without days 29, 30, or 31.
         if (
             $this->getFrequency() === static::MONTHLY
             && ! $this->rrule->getByDay()
@@ -236,8 +236,9 @@ class RRule implements Frequency
     public function startAt(DateTimeInterface $start): static
     {
         $startDate = clone $start;
-        // When the start time contains microseconds, the first recurrence will always be skipped, as
-        // the transformer operates only up to seconds level. See also the upstream issue #155
+        // Microseconds in the start time cause the first recurrence to be
+        // skipped, as the transformer only operates to the second.
+        // See upstream issue #155.
         $startDate->setTime($start->format('H'), $start->format('i'), $start->format('s'));
         $this->alignTimezone($startDate);
 
@@ -307,6 +308,9 @@ class RRule implements Frequency
         int $limit = self::DEFAULT_LIMIT,
         bool $include = true
     ): Generator {
+        // The virtual limit is Recurr's guard against infinite loops: it caps
+        // the total number of candidates processed. It is shared config, so we
+        // raise it temporarily for multi-result calls and restore it afterward.
         $resetTransformerConfig = function (int $limit = self::DEFAULT_LIMIT): void {
             $this->transformerConfig->setVirtualLimit($limit);
             $this->transformer->setConfig($this->transformerConfig);
@@ -316,19 +320,19 @@ class RRule implements Frequency
             $resetTransformerConfig($limit);
         }
 
+        // For bounded rules, BetweenConstraint also caps at the end time.
+        // AfterConstraint alone would let the transformer run past it.
         $constraint = new AfterConstraint($dateTime, $include);
         if (! $this->rrule->repeatsIndefinitely()) {
-            // When accessing this method externally (not by using `getNextDue()`), the transformer may
-            // generate recurrences beyond the configured end time.
             $constraint = new BetweenConstraint($dateTime, $this->getEnd(), $include);
         }
 
-        // Setting the start date to a date time smaller than now causes the underlying library
-        // not to generate any recurrences when using the regular frequencies such as `MINUTELY` etc.
-        // and the `$countConstraintFailures` is set to true. We need also to tell the transformer
-        // not to count the recurrences that fail the constraint's test!
-        $recurrences = $this->transformer->transform($this->rrule, $constraint, false);
+        // By default, non-matching candidates count toward the virtual limit too.
+        // With a past start date this exhausts it before any match is found.
+        // Pass false so only matches count.
+        $recurrences = $this->transformer->transform($this->rrule, $constraint, countConstraintFailures: false);
         foreach ($recurrences as $recurrence) {
+            // Return results in the caller's timezone, not the rrule's.
             yield $recurrence->getStart()->setTimezone($dateTime->getTimezone());
         }
 

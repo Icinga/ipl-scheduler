@@ -114,8 +114,8 @@ class SchedulerTest extends TestCase
                 }
             );
 
-        // Wait 0.01s for the scheduler to run the task a couple of times before
-        // removing it und stopping the event loop.
+        // Wait 0.01s for the scheduler to run the task a couple of times,
+        // then remove it and stop the event loop.
         Loop::addTimer(.01, function () use ($task): void {
             $this->scheduler->remove($task);
 
