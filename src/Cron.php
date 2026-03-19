@@ -51,11 +51,9 @@ class Cron implements Frequency
             return true;
         }
 
-        return
-            // If the next scheduled run after $lastRun is before $dateTime, a run was missed
-            $this->cron->getNextRunDate($lastRun) < $dateTime
-            // Otherwise check if the expression matches right now
-            || $this->cron->isDue($dateTime);
+        $missedRun = $this->cron->getNextRunDate($lastRun) < $dateTime;
+
+        return $missedRun || $this->cron->isDue($dateTime);
     }
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface

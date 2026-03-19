@@ -11,7 +11,7 @@ interface Frequency extends JsonSerializable
     public const SERIALIZED_DATETIME_FORMAT = 'Y-m-d\TH:i:s.ue';
 
     /**
-     * Get whether the frequency is due.
+     * Get whether the frequency is due
      *
      * If $lastRun is set, the last run time is used to determine if the frequency is due at the
      * specified $dateTime or was due since the last run. This can be used to catch up missed runs.

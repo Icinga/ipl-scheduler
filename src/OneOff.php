@@ -23,7 +23,6 @@ class OneOff implements Frequency
 
     public function isDue(DateTimeInterface $dateTime, ?DateTimeInterface $lastRun = null): bool
     {
-        // If there was no last run, this frequency is due
         return $lastRun === null;
     }
 
