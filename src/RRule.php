@@ -95,6 +95,36 @@ class RRule implements Frequency
     }
 
     /**
+     * Create an {@see RRule} instance from its stored JSON representation
+     *
+     * The JSON must decode to an object with an `rrule` key and a `frequency` key,
+     * and optionally a `start` key formatted according to {@see Frequency::SERIALIZED_DATETIME_FORMAT}.
+     *
+     * @param string $json
+     *
+     * @return static
+     *
+     * @throws InvalidArgumentException If the start datetime cannot be deserialized
+     */
+    public static function fromJson(string $json): static
+    {
+        /** @var stdClass $data */
+        $data = json_decode($json);
+        $self = new static($data->rrule);
+        $self->frequency = $data->frequency;
+        if (isset($data->start)) {
+            $start = DateTime::createFromFormat(static::SERIALIZED_DATETIME_FORMAT, $data->start);
+            if (! $start) {
+                throw new InvalidArgumentException(sprintf('Cannot deserialize start time: %s', $data->start));
+            }
+
+            $self->startAt($start);
+        }
+
+        return $self;
+    }
+
+    /**
      * Create an RRule instance from one of the predefined frequency constants
      *
      * @param string $frequency One of the class frequency constants
@@ -128,36 +158,6 @@ class RRule implements Frequency
 
         $self = new static($rule);
         $self->frequency = $frequency;
-
-        return $self;
-    }
-
-    /**
-     * Create an {@see RRule} instance from its stored JSON representation
-     *
-     * The JSON must decode to an object with an `rrule` key and a `frequency` key,
-     * and optionally a `start` key formatted according to {@see Frequency::SERIALIZED_DATETIME_FORMAT}.
-     *
-     * @param string $json
-     *
-     * @return static
-     *
-     * @throws InvalidArgumentException If the start datetime cannot be deserialized
-     */
-    public static function fromJson(string $json): static
-    {
-        /** @var stdClass $data */
-        $data = json_decode($json);
-        $self = new static($data->rrule);
-        $self->frequency = $data->frequency;
-        if (isset($data->start)) {
-            $start = DateTime::createFromFormat(static::SERIALIZED_DATETIME_FORMAT, $data->start);
-            if (! $start) {
-                throw new InvalidArgumentException(sprintf('Cannot deserialize start time: %s', $data->start));
-            }
-
-            $self->startAt($start);
-        }
 
         return $self;
     }
@@ -208,6 +208,23 @@ class RRule implements Frequency
         return $this->getEnd() !== null && $this->getEnd() < $dateTime;
     }
 
+    public function getStart(): ?DateTimeInterface
+    {
+        return $this->rrule->getStartDate();
+    }
+
+    /**
+     * Get the end time of this frequency
+     *
+     * Returns the rule's end date if set, falling back to the `UNTIL` value.
+     *
+     * @return ?DateTimeInterface
+     */
+    public function getEnd(): ?DateTimeInterface
+    {
+        return $this->rrule->getEndDate() ?? $this->rrule->getUntil();
+    }
+
     /**
      * Set timezone for the rrule
      *
@@ -247,11 +264,6 @@ class RRule implements Frequency
         return $this;
     }
 
-    public function getStart(): ?DateTimeInterface
-    {
-        return $this->rrule->getStartDate();
-    }
-
     /**
      * Set the time until this frequency lasts
      *
@@ -270,18 +282,6 @@ class RRule implements Frequency
         $this->rrule->setUntil($end);
 
         return $this;
-    }
-
-    /**
-     * Get the end time of this frequency
-     *
-     * Returns the rule's end date if set, falling back to the `UNTIL` value.
-     *
-     * @return ?DateTimeInterface
-     */
-    public function getEnd(): ?DateTimeInterface
-    {
-        return $this->rrule->getEndDate() ?? $this->rrule->getUntil();
     }
 
     /**
@@ -365,21 +365,6 @@ class RRule implements Frequency
     }
 
     /**
-     * Align a datetime to the rrule's configured timezone in place
-     *
-     * Recurr requires all dates (start, until) to share the rrule's own timezone,
-     * otherwise recurrences are calculated against the wrong UTC offset.
-     *
-     * @param ?DateTime $dateTime
-     *
-     * @return void
-     */
-    protected function alignTimezone(?DateTime $dateTime): void
-    {
-        $dateTime?->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
-    }
-
-    /**
      * Redirect all public method calls to the underlying rrule object
      *
      * @param string $methodName
@@ -404,5 +389,20 @@ class RRule implements Frequency
         }
 
         return call_user_func_array([$this->rrule, $methodName], $args);
+    }
+
+    /**
+     * Align a datetime to the rrule's configured timezone in place
+     *
+     * Recurr requires all dates (start, until) to share the rrule's own timezone,
+     * otherwise recurrences are calculated against the wrong UTC offset.
+     *
+     * @param ?DateTime $dateTime
+     *
+     * @return void
+     */
+    protected function alignTimezone(?DateTime $dateTime): void
+    {
+        $dateTime?->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
     }
 }

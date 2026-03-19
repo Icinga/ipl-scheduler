@@ -34,6 +34,33 @@ class OneOff implements Frequency
         $this->dateTime->setTimezone(new DateTimeZone(date_default_timezone_get()));
     }
 
+    /**
+     * Create a {@see OneOff} instance from its stored JSON representation
+     *
+     * The JSON must decode to a datetime string formatted according to {@see Frequency::SERIALIZED_DATETIME_FORMAT}.
+     *
+     * @param string $json
+     *
+     * @return static
+     *
+     * @throws InvalidArgumentException If the JSON does not decode to a string
+     */
+    public static function fromJson(string $json): static
+    {
+        $data = json_decode($json, true);
+        if (! is_string($data)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    '%s expects json decoded value to be string, got %s instead',
+                    __METHOD__,
+                    get_php_type($data)
+                )
+            );
+        }
+
+        return new static(new DateTime($data));
+    }
+
     public function isDue(DateTimeInterface $dateTime): bool
     {
         return ! $this->isExpired($dateTime) && $this->dateTime == $dateTime;
@@ -76,33 +103,6 @@ class OneOff implements Frequency
     public function getEnd(): ?DateTimeInterface
     {
         return $this->getStart();
-    }
-
-    /**
-     * Create a {@see OneOff} instance from its stored JSON representation
-     *
-     * The JSON must decode to a datetime string formatted according to {@see Frequency::SERIALIZED_DATETIME_FORMAT}.
-     *
-     * @param string $json
-     *
-     * @return static
-     *
-     * @throws InvalidArgumentException If the JSON does not decode to a string
-     */
-    public static function fromJson(string $json): static
-    {
-        $data = json_decode($json, true);
-        if (! is_string($data)) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    '%s expects json decoded value to be string, got %s instead',
-                    __METHOD__,
-                    get_php_type($data)
-                )
-            );
-        }
-
-        return new static(new DateTime($data));
     }
 
     /**
