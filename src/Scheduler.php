@@ -207,7 +207,7 @@ class Scheduler
     {
         $now = new DateTime();
         $frequencyState = FrequencyStatus::fromFrequency($frequency, $now);
-        if ($frequencyState === FrequencyStatus::EXPIRED) {
+        if ($frequencyState->isExpired()) {
             return $this;
         }
 
@@ -221,7 +221,7 @@ class Scheduler
          * If the frequency status is ready, $now falls within the scheduled frequency window,
          * and the due check can be performed as described in {@see Frequency::isDue()}.
          */
-        if ($frequencyState === FrequencyStatus::READY && $frequency->isDue($now, $effectiveLastRun)) {
+        if ($frequencyState->isReady() && $frequency->isDue($now, $effectiveLastRun)) {
             Loop::futureTick(function () use ($task): void {
                 $promise = $this->runTask($task);
                 $this->emit(static::ON_TASK_RUN, [$task, $promise]);

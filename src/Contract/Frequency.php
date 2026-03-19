@@ -20,7 +20,7 @@ interface Frequency extends JsonSerializable
      * pass the same time to both params.
      *
      * This method should only be called if $dateTime falls within the scheduled frequency window,
-     * i.e., the {@see FrequencyStatus} is {@see FrequencyStatus::READY}.
+     * i.e., {@see FrequencyStatus::isReady()} is true.
      *
      * @param DateTimeInterface $dateTime
      * @param ?DateTimeInterface $lastRun If null is provided, the frequency is definitely due

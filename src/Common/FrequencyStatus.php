@@ -44,4 +44,34 @@ enum FrequencyStatus
         // If none of the earlier checks have been triggered, the frequency is ready to run.
         return self::READY;
     }
+
+    /**
+     * Get whether the frequency is pending
+     *
+     * @return bool
+     */
+    public function isPending(): bool
+    {
+        return $this === self::PENDING;
+    }
+
+    /**
+     * Get whether the frequency is ready
+     *
+     * @return bool
+     */
+    public function isReady(): bool
+    {
+        return $this === self::READY;
+    }
+
+    /**
+     * Get whether the frequency is expired
+     *
+     * @return bool
+     */
+    public function isExpired(): bool
+    {
+        return $this === self::EXPIRED;
+    }
 }

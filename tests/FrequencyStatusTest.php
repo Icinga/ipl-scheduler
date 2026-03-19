@@ -16,15 +16,9 @@ class FrequencyStatusTest extends TestCase
         $rrule = RRule::fromFrequency(RRule::HOURLY);
 
         // No start and end date means always ready, regardless of the date
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, new DateTime('1970-01-01'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, new DateTime('1970-01-01'))->isReady());
 
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, new DateTime('9999-12-31'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, new DateTime('9999-12-31'))->isReady());
     }
 
     public function testRRuleWithStartOnly(): void
@@ -34,22 +28,13 @@ class FrequencyStatusTest extends TestCase
             ->startAt($start);
 
         // One hour before the start date
-        $this->assertSame(
-            FrequencyStatus::PENDING,
-            FrequencyStatus::fromFrequency($rrule, (clone $start)->modify('-1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, (clone $start)->modify('-1 hour'))->isPending());
 
         // Exactly the start date (start date is inclusive, so it's ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, $start)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, $start)->isReady());
 
         // One hour after the start date (no end date, so still ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, (clone $start)->modify('+1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, (clone $start)->modify('+1 hour'))->isReady());
     }
 
     public function testRRuleWithEndOnly(): void
@@ -59,22 +44,13 @@ class FrequencyStatusTest extends TestCase
             ->endAt($end);
 
         // One hour before the end date
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, (clone $end)->modify('-1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, (clone $end)->modify('-1 hour'))->isReady());
 
         // Exactly the end date (end date is inclusive, so it's ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, $end)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, $end)->isReady());
 
         // One hour after the end date
-        $this->assertSame(
-            FrequencyStatus::EXPIRED,
-            FrequencyStatus::fromFrequency($rrule, (clone $end)->modify('+1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, (clone $end)->modify('+1 hour'))->isExpired());
     }
 
     public function testRRuleWithStartAndEnd(): void
@@ -86,34 +62,19 @@ class FrequencyStatusTest extends TestCase
             ->endAt($end);
 
         // One hour before the start date
-        $this->assertSame(
-            FrequencyStatus::PENDING,
-            FrequencyStatus::fromFrequency($rrule, new DateTime('11:00'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, new DateTime('11:00'))->isPending());
 
         // Exactly the start date (start date is inclusive, so it's ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, $start)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, $start)->isReady());
 
         // Between start and end date
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, new DateTime('13:00'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, new DateTime('13:00'))->isReady());
 
         // Exactly the end date (end date is inclusive, so it's ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($rrule, $end)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, $end)->isReady());
 
         // One hour after the end date
-        $this->assertSame(
-            FrequencyStatus::EXPIRED,
-            FrequencyStatus::fromFrequency($rrule, new DateTime('15:00'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($rrule, new DateTime('15:00'))->isExpired());
     }
 
     public function testCronWithoutStartAndEnd(): void
@@ -121,15 +82,9 @@ class FrequencyStatusTest extends TestCase
         $cron = (new Cron('0 * * * *'));
 
         // No start and end date means always ready, regardless of the date
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, new DateTime('1970-01-01'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, new DateTime('1970-01-01'))->isReady());
 
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, new DateTime('9999-12-31'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, new DateTime('9999-12-31'))->isReady());
     }
 
     public function testCronWithStartOnly(): void
@@ -139,22 +94,13 @@ class FrequencyStatusTest extends TestCase
             ->startAt($start);
 
         // One hour before the start date
-        $this->assertSame(
-            FrequencyStatus::PENDING,
-            FrequencyStatus::fromFrequency($cron, (clone $start)->modify('-1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, (clone $start)->modify('-1 hour'))->isPending());
 
         // Exactly the start date (start date is inclusive, so it's ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, $start)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, $start)->isReady());
 
         // One hour after the start date (no end date, so still ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, (clone $start)->modify('+1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, (clone $start)->modify('+1 hour'))->isReady());
     }
 
     public function testCronWithEndOnly(): void
@@ -164,22 +110,13 @@ class FrequencyStatusTest extends TestCase
             ->endAt($end);
 
         // One hour before the end date
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, (clone $end)->modify('-1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, (clone $end)->modify('-1 hour'))->isReady());
 
         // Exactly the end date (end date is inclusive, so it's ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, $end)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, $end)->isReady());
 
         // One hour after the end date
-        $this->assertSame(
-            FrequencyStatus::EXPIRED,
-            FrequencyStatus::fromFrequency($cron, (clone $end)->modify('+1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, (clone $end)->modify('+1 hour'))->isExpired());
     }
 
     public function testCronWithStartAndEnd(): void
@@ -191,34 +128,19 @@ class FrequencyStatusTest extends TestCase
             ->endAt($end);
 
         // One hour before the start date
-        $this->assertSame(
-            FrequencyStatus::PENDING,
-            FrequencyStatus::fromFrequency($cron, new DateTime('11:00'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, new DateTime('11:00'))->isPending());
 
         // Exactly the start date (start date is inclusive, so it's ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, $start)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, $start)->isReady());
 
         // Between start and end date
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, new DateTime('13:00'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, new DateTime('13:00'))->isReady());
 
         // Exactly the end date (end date is inclusive, so it's ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($cron, $end)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, $end)->isReady());
 
         // One hour after the end date
-        $this->assertSame(
-            FrequencyStatus::EXPIRED,
-            FrequencyStatus::fromFrequency($cron, new DateTime('15:00'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($cron, new DateTime('15:00'))->isExpired());
     }
 
     public function testOneOff(): void
@@ -227,21 +149,12 @@ class FrequencyStatusTest extends TestCase
         $oneOff = new OneOff($start);
 
         // One hour before the scheduled time
-        $this->assertSame(
-            FrequencyStatus::PENDING,
-            FrequencyStatus::fromFrequency($oneOff, (clone $start)->modify('-1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($oneOff, (clone $start)->modify('-1 hour'))->isPending());
 
         // Exactly the scheduled time
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($oneOff, $start)
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($oneOff, $start)->isReady());
 
         // One hour after the scheduled time (no end date, so still ready)
-        $this->assertSame(
-            FrequencyStatus::READY,
-            FrequencyStatus::fromFrequency($oneOff, (clone $start)->modify('+1 hour'))
-        );
+        $this->assertTrue(FrequencyStatus::fromFrequency($oneOff, (clone $start)->modify('+1 hour'))->isReady());
     }
 }
