@@ -12,7 +12,7 @@ class ExpiringFrequency extends BaseTestFrequency
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
-        if (FrequencyStatus::fromFrequency($this, $dateTime) === FrequencyStatus::EXPIRED) {
+        if (FrequencyStatus::fromFrequency($this, $dateTime)->isExpired()) {
             return $this->end;
         }
 
