@@ -211,16 +211,8 @@ class Scheduler
             return $this;
         }
 
-        /**
-         * If the task does not provide a last run time, $now is used instead to skip
-         * checking for missed runs as described in {@see Frequency::isDue()}.
-         */
         $effectiveLastRun = $task->getLastRun() === false ? $now : $task->getLastRun();
 
-        /**
-         * If the frequency status is ready, $now falls within the scheduled frequency window,
-         * and the due check can be performed as described in {@see Frequency::isDue()}.
-         */
         if ($frequencyState->isReady() && $frequency->isDue($now, $effectiveLastRun)) {
             Loop::futureTick(function () use ($task): void {
                 $promise = $this->runTask($task);
@@ -230,7 +222,7 @@ class Scheduler
         }
 
         $nextDue = $frequency->getNextDue($now);
-        // If the next due date is already reached, we don't need to schedule the task
+        // If the next due date is already reached, we don't need to schedule the task.
         if ($nextDue <= $now) {
             return $this;
         }
