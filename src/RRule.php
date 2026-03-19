@@ -278,13 +278,9 @@ class RRule implements Frequency
     /**
      * Get a set of recurrences relative to the given time
      *
-     * The `$include` parameter controls whether `$dateTime` is included in the result set.
-     * If the rrule has an end date, `$include` also determines whether the end date boundary
-     * is included, as both boundaries of the constraint use the same inclusivity setting.
-     *
      * @param DateTimeInterface $dateTime
      * @param int $limit Limit the recurrences to be generated to the given value
-     * @param bool $include Whether to include the passed date and frequency end date in the result set
+     * @param bool $include Whether to include both the given date and an optional configured end date in the result set
      *
      * @return Generator<DateTimeInterface>
      */
