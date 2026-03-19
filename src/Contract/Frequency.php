@@ -19,6 +19,15 @@ interface Frequency extends JsonSerializable
     public const SERIALIZED_DATETIME_FORMAT = 'Y-m-d\TH:i:s.ue';
 
     /**
+     * Create frequency from its stored JSON representation previously encoded with {@see json_encode()}
+     *
+     * @param string $json
+     *
+     * @return $this
+     */
+    public static function fromJson(string $json): static;
+
+    /**
      * Get whether the frequency is due at the specified time
      *
      * @param DateTimeInterface $dateTime
@@ -58,13 +67,4 @@ interface Frequency extends JsonSerializable
      * @return ?DateTimeInterface
      */
     public function getEnd(): ?DateTimeInterface;
-
-    /**
-     * Create frequency from its stored JSON representation previously encoded with {@see json_encode()}
-     *
-     * @param string $json
-     *
-     * @return $this
-     */
-    public static function fromJson(string $json): static;
 }
