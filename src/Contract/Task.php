@@ -32,7 +32,8 @@ interface Task
     /**
      * Get the last run of this task
      *
-     * @return DateTimeInterface|false|null Null if there was no last run and false if the last run is not provided
+     * @return DateTimeInterface|false|null If the last run is null and the frequency is ready, it will run instantly.
+     *   If the last run is false the frequency won't check for last runs as described in {@see Frequency::isDue()}.
      */
     public function getLastRun(): DateTimeInterface|false|null;
 
