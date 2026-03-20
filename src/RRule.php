@@ -252,14 +252,15 @@ class RRule implements Frequency
      */
     public function startAt(DateTimeInterface $start): static
     {
-        $startDate = clone $start;
+        $start = DateTime::createFromInterface($start);
         // Microseconds in the start time cause the first recurrence to be
         // skipped, as the transformer only operates to the second.
         // See upstream issue #155.
-        $startDate->setTime($start->format('H'), $start->format('i'), $start->format('s'));
-        $this->alignTimezone($startDate);
+        $start->setTime($start->format('H'), $start->format('i'), $start->format('s'));
 
-        $this->rrule->setStartDate($startDate);
+        $this->alignTimezone($start);
+
+        $this->rrule->setStartDate($start);
 
         return $this;
     }
@@ -275,8 +276,9 @@ class RRule implements Frequency
      */
     public function endAt(DateTimeInterface $end): static
     {
-        $end = clone $end;
+        $end = DateTime::createFromInterface($end);
         $end->setTime($end->format('H'), $end->format('i'), $end->format('s'));
+
         $this->alignTimezone($end);
 
         $this->rrule->setUntil($end);
