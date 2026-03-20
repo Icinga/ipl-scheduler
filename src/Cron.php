@@ -36,11 +36,11 @@ class Cron implements Frequency
 
     protected CronExpression $cron;
 
-    /** @var ?DateTimeInterface Start time of this frequency */
-    protected ?DateTimeInterface $start = null;
+    /** @var ?DateTime Start time of this frequency */
+    protected ?DateTime $start = null;
 
-    /** @var ?DateTimeInterface End time of this frequency */
-    protected ?DateTimeInterface $end = null;
+    /** @var ?DateTime End time of this frequency */
+    protected ?DateTime $end = null;
 
     /** @var string String representation of the cron expression */
     protected string $expression;
@@ -162,7 +162,7 @@ class Cron implements Frequency
      */
     public function startAt(DateTimeInterface $start): static
     {
-        $this->start = clone $start;
+        $this->start = DateTime::createFromInterface($start);
         $this->start->setTimezone(new DateTimeZone(date_default_timezone_get()));
 
         return $this;
@@ -177,7 +177,7 @@ class Cron implements Frequency
      */
     public function endAt(DateTimeInterface $end): static
     {
-        $this->end = clone $end;
+        $this->end = DateTime::createFromInterface($end);
         $this->end->setTimezone(new DateTimeZone(date_default_timezone_get()));
 
         return $this;

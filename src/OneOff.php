@@ -18,8 +18,8 @@ use function ipl\Stdlib\get_php_type;
  */
 class OneOff implements Frequency
 {
-    /** @var DateTimeInterface Start time of this frequency */
-    protected DateTimeInterface $dateTime;
+    /** @var DateTime Start time of this frequency */
+    protected DateTime $dateTime;
 
     /**
      * Create a one-off frequency for the given point in time
@@ -30,7 +30,7 @@ class OneOff implements Frequency
      */
     public function __construct(DateTimeInterface $dateTime)
     {
-        $this->dateTime = clone $dateTime;
+        $this->dateTime = DateTime::createFromInterface($dateTime);
         $this->dateTime->setTimezone(new DateTimeZone(date_default_timezone_get()));
     }
 

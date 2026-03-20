@@ -235,8 +235,12 @@ class RRule implements Frequency
     public function setTimezone(string $timezone): static
     {
         $this->rrule->setTimezone($timezone);
-        $this->alignTimezone($this->rrule->getStartDate());
-        $this->alignTimezone($this->rrule->getUntil());
+
+        $this->rrule->setStartDate($this->alignTimezone($this->rrule->getStartDate()));
+        $until = $this->rrule->getUntil();
+        if ($until !== null) {
+            $this->rrule->setUntil($this->alignTimezone($until));
+        }
 
         return $this;
     }
@@ -252,14 +256,7 @@ class RRule implements Frequency
      */
     public function startAt(DateTimeInterface $start): static
     {
-        $startDate = clone $start;
-        // Microseconds in the start time cause the first recurrence to be
-        // skipped, as the transformer only operates to the second.
-        // See upstream issue #155.
-        $startDate->setTime($start->format('H'), $start->format('i'), $start->format('s'));
-        $this->alignTimezone($startDate);
-
-        $this->rrule->setStartDate($startDate);
+        $this->rrule->setStartDate($this->normalizeDateTime($start));
 
         return $this;
     }
@@ -275,11 +272,7 @@ class RRule implements Frequency
      */
     public function endAt(DateTimeInterface $end): static
     {
-        $end = clone $end;
-        $end->setTime($end->format('H'), $end->format('i'), $end->format('s'));
-        $this->alignTimezone($end);
-
-        $this->rrule->setUntil($end);
+        $this->rrule->setUntil($this->normalizeDateTime($end));
 
         return $this;
     }
@@ -332,8 +325,10 @@ class RRule implements Frequency
         // Pass false so only matches count.
         $recurrences = $this->transformer->transform($this->rrule, $constraint, countConstraintFailures: false);
         foreach ($recurrences as $recurrence) {
+            /** @var \Recurr\Recurrence $recurrence */
+
             // Return results in the caller's timezone, not the rrule's.
-            yield $recurrence->getStart()->setTimezone($dateTime->getTimezone());
+            yield DateTime::createFromInterface($recurrence->getStart())->setTimezone($dateTime->getTimezone());
         }
 
         if ($limit > self::DEFAULT_LIMIT) {
@@ -392,17 +387,47 @@ class RRule implements Frequency
     }
 
     /**
-     * Align a datetime to the rrule's configured timezone in place
+     * Normalize a datetime for Recurr
+     *
+     * The given datetime is cloned, stripped of microseconds, and aligned to
+     * the rrule's configured timezone.
+     *
+     * @param DateTimeInterface $dateTime
+     *
+     * @return DateTime
+     */
+    protected function normalizeDateTime(DateTimeInterface $dateTime): DateTime
+    {
+        $dateTime = DateTime::createFromInterface($dateTime);
+        // Microseconds in the datetime can cause the first recurrence to be
+        // skipped, as the transformer only operates to the second.
+        // See upstream issue #155.
+        $dateTime->setTime(
+            (int) $dateTime->format('H'),
+            (int) $dateTime->format('i'),
+            (int) $dateTime->format('s')
+        );
+
+        return $this->alignTimezone($dateTime);
+    }
+
+    /**
+     * Align a datetime to the rrule's configured timezone
      *
      * Recurr requires all dates (start, until) to share the rrule's own timezone,
      * otherwise recurrences are calculated against the wrong UTC offset.
      *
-     * @param ?DateTime $dateTime
+     * @param ?DateTimeInterface $dateTime
      *
-     * @return void
+     * @return ?DateTime
      */
-    protected function alignTimezone(?DateTime $dateTime): void
+    protected function alignTimezone(?DateTimeInterface $dateTime): ?DateTime
     {
-        $dateTime?->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
+        if ($dateTime === null) {
+            return null;
+        }
+
+        return DateTime::createFromInterface($dateTime)
+            ->setTimezone(new DateTimeZone($this->rrule->getTimezone()));
     }
 }
