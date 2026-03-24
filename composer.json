@@ -1,23 +1,25 @@
 {
   "name": "ipl/scheduler",
-  "type": "library",
   "description": "Icinga PHP Library - Tasks scheduler",
-  "keywords": ["task", "job", "scheduler", "cron"],
-  "homepage": "https://github.com/Icinga/ipl-scheduler",
   "license": "MIT",
-  "config": {
-    "sort-packages": true
-  },
+  "type": "library",
+  "keywords": [
+    "task",
+    "job",
+    "scheduler",
+    "cron"
+  ],
+  "homepage": "https://github.com/Icinga/ipl-scheduler",
   "require": {
     "php": ">=8.2",
     "ext-json": "*",
     "dragonmantank/cron-expression": "^3",
+    "ipl/stdlib": ">=0.12.0",
     "psr/log": "^1",
     "ramsey/uuid": "^4.2.3",
     "react/event-loop": "^1.4",
     "react/promise": "^3.3",
-    "simshaun/recurr": "^5",
-    "ipl/stdlib": ">=0.12.0"
+    "simshaun/recurr": "^5"
   },
   "require-dev": {
     "ipl/stdlib": "dev-main"
@@ -26,14 +28,19 @@
     "ext-ev": "Improves performance, efficiency and avoids system limitations. Highly recommended! (See https://www.php.net/manual/en/intro.ev.php for details)"
   },
   "autoload": {
-    "files": ["src/register_cron_aliases.php"],
     "psr-4": {
       "ipl\\Scheduler\\": "src"
-    }
+    },
+    "files": [
+      "src/register_cron_aliases.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
       "ipl\\Tests\\Scheduler\\": "tests"
     }
+  },
+  "config": {
+    "sort-packages": true
   }
 }
