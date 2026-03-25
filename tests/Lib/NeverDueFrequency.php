@@ -7,7 +7,7 @@ use DateTimeInterface;
 
 class NeverDueFrequency extends BaseTestFrequency
 {
-    public function isDue(DateTimeInterface $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime, ?DateTimeInterface $lastRun = null): bool
     {
         return false;
     }

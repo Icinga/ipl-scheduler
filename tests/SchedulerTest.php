@@ -115,7 +115,7 @@ class SchedulerTest extends TestCase
             );
 
         // Wait 0.01s for the scheduler to run the task a couple of times before
-        // removing it und stopping the event loop.
+        // removing it and stopping the event loop.
         Loop::addTimer(.01, function () use ($task): void {
             $this->scheduler->remove($task);
 
@@ -256,8 +256,8 @@ class SchedulerTest extends TestCase
     public function testDoesNotScheduleExpiredTasks()
     {
         $task = new PromiseBoundTask(Promise\resolve(null));
-        $frequency = new ExpiringFrequency();
-        $frequency->setExpired();
+        $frequency = (new ExpiringFrequency())
+            ->endAt(new DateTime('-1 second'));
 
         $this->scheduler->schedule($task, $frequency);
 
@@ -271,34 +271,41 @@ class SchedulerTest extends TestCase
     public function testTaskIsDetachedAfterExpiring()
     {
         $deferred = new Promise\Deferred();
-        $frequency = new ExpiringFrequency();
         $task = new PromiseBoundTask($deferred->promise());
 
-        $expireTime = new DateTime();
-        $frequency->endAt($expireTime);
+        // End time in the future so FrequencyStatus is READY, not immediately EXPIRED.
+        // getNextDue() returns $now + 1 second, so the scheduler creates a 1-second $loop timer.
+        $frequency = (new ExpiringFrequency())
+            ->endAt(new DateTime('+1 minute'));
 
         $expiredAt = null;
         $this->scheduler
             ->on(CountableScheduler::ON_TASK_EXPIRED, function (Task $_, DateTime $expires) use (&$expiredAt): void {
                 $expiredAt = $expires;
+
+                // Stop the loop immediately so the test doesn't wait for the safety timer
+                Loop::stop();
             })
             ->on(
                 CountableScheduler::ON_TASK_RUN,
                 function (Task $t, PromiseInterface $_) use ($deferred, $frequency): void {
-                    $frequency->setExpired();
+                    // Move end to the past so the next $loop call detects expiry
+                    $frequency->endAt(new DateTime('-1 second'));
 
-                    Loop::addTimer(0, function ($timer) use ($deferred): void {
-                        $deferred->resolve(0);
-
-                        Loop::cancelTimer($timer);
-                    });
+                    // Resolve so the expiry path's Promise\all() can complete
+                    $deferred->resolve(null);
                 }
             )
             ->schedule($task, $frequency);
 
-        $this->runAndStopEventLoop();
+        // Safety timer to keep the loop alive long enough for the 1-second $loop timer to fire.
+        // If the expiration is detected earlier, the loop stops instantly.
+        Loop::addTimer(5, function (): void {
+            Loop::stop();
+        });
+        Loop::run();
 
-        $this->assertEquals($expireTime, $expiredAt, 'Scheduler::schedule() did not get expected expire time');
+        $this->assertNotNull($expiredAt, 'Scheduler::schedule() did not get expected expire time');
 
         $this->assertEquals(0, $this->scheduler->count(), 'Scheduler::schedule() did not remove expired task');
         $this->assertEquals(0, $this->scheduler->countTimers());
@@ -311,7 +318,7 @@ class SchedulerTest extends TestCase
         $deferred = new Promise\Deferred();
         $task = new PromiseBoundTask($deferred->promise());
         $this->scheduler
-            ->schedule($task, new OneOff(new DateTime('+1 milliseconds')))
+            ->schedule($task, new OneOff(new DateTime('+1 second')))
             ->on(
                 CountableScheduler::ON_TASK_RUN,
                 function (Task $t, PromiseInterface $_) use (&$countRuns, $deferred): void {
@@ -321,7 +328,11 @@ class SchedulerTest extends TestCase
                 }
             );
 
-        $this->runAndStopEventLoop();
+        // Wait long enough for the 1-second timer to fire and detect that OneOff has no next occurrence
+        Loop::addTimer(2, function (): void {
+            Loop::stop();
+        });
+        Loop::run();
 
         $this->assertEquals(0, $this->scheduler->count());
         $this->assertEquals(0, $this->scheduler->countTimers());

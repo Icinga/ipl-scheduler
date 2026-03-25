@@ -4,6 +4,7 @@ namespace ipl\Scheduler;
 
 use DateTime;
 use InvalidArgumentException;
+use ipl\Scheduler\Common\FrequencyStatus;
 use ipl\Scheduler\Common\Promises;
 use ipl\Scheduler\Common\Timers;
 use ipl\Scheduler\Contract\Frequency;
@@ -205,20 +206,25 @@ class Scheduler
     public function schedule(Task $task, Frequency $frequency): static
     {
         $now = new DateTime();
-        if ($frequency->isExpired($now)) {
+        $frequencyState = FrequencyStatus::fromFrequency($frequency, $now);
+        if ($frequencyState->isExpired()) {
             return $this;
         }
 
-        if ($frequency->isDue($now)) {
+        $effectiveLastRun = $task->getLastRun() === false ? $now : $task->getLastRun();
+
+        if ($frequencyState->isReady() && $frequency->isDue($now, $effectiveLastRun)) {
             Loop::futureTick(function () use ($task): void {
                 $promise = $this->runTask($task);
                 $this->emit(static::ON_TASK_RUN, [$task, $promise]);
             });
             $this->emit(static::ON_TASK_SCHEDULED, [$task, $now]);
+        }
 
-            if ($frequency instanceof OneOff) {
-                return $this;
-            }
+        $nextDue = $frequency->getNextDue($now);
+        // If the next due date is already reached, we don't need to schedule the task.
+        if ($nextDue <= $now) {
+            return $this;
         }
 
         $loop = function () use (&$loop, $task, $frequency): void {
@@ -227,7 +233,7 @@ class Scheduler
 
             $now = new DateTime();
             $nextDue = $frequency->getNextDue($now);
-            if ($frequency instanceof OneOff || $frequency->isExpired($nextDue)) {
+            if ($nextDue <= $now) {
                 $removeTask = function () use ($task, $nextDue): void {
                     $this->remove($task);
                     $this->emit(static::ON_TASK_EXPIRED, [$task, $nextDue]);
@@ -250,7 +256,6 @@ class Scheduler
             $this->emit(static::ON_TASK_SCHEDULED, [$task, $nextDue]);
         };
 
-        $nextDue = $frequency->getNextDue($now);
         $this->attachTimer(
             $task->getUuid(),
             Loop::addTimer($nextDue->getTimestamp() - $now->getTimestamp(), $loop)
