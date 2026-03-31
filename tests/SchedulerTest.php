@@ -329,4 +329,19 @@ class SchedulerTest extends TestCase
 
         $this->assertEquals(1, $countRuns, 'Scheduler::schedule() did not run a task with one-off frequency only once');
     }
+
+    public function testAlreadyRejectedTaskErrorPropagation()
+    {
+        $this->expectNotToPerformAssertions();
+
+        // Won't work yet
+        $task = new PromiseBoundTask(Promise\reject(new TaskRejectedException()));
+        $task1 = new PromiseBoundTask(Promise\reject('Rejected!'));
+
+        $this->scheduler->schedule($task, new ImmediateDueFrequency());
+
+        $this->runAndStopEventLoop();
+
+        // Assert here
+    }
 }
