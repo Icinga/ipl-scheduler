@@ -2,6 +2,7 @@
 
 namespace ipl\Scheduler\Contract;
 
+use DateTimeInterface;
 use Ramsey\Uuid\UuidInterface;
 use React\Promise\PromiseInterface;
 
@@ -27,6 +28,14 @@ interface Task
      * @return ?string
      */
     public function getDescription(): ?string;
+
+    /**
+     * Get the last run of this task
+     *
+     * @return DateTimeInterface|false|null If the last run is null and the frequency is ready, it will run instantly.
+     *   If the last run is false the frequency won't check for last runs as described in {@see Frequency::isDue()}.
+     */
+    public function getLastRun(): DateTimeInterface|false|null;
 
     /**
      * Run this tasks operations

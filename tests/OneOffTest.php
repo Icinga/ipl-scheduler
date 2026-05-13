@@ -11,11 +11,17 @@ class OneOffTest extends TestCase
 {
     public function testIsDue()
     {
-        $now = new DateTime();
-        $oneOff = new OneOff($now);
+        $start = new DateTime();
+        $oneOff = new OneOff($start);
 
+        $now = $start;
+        // No last run provided (null), so the frequency should definitely be due per the interface contract
         $this->assertTrue($oneOff->isDue($now));
-        $this->assertFalse($oneOff->isDue(new DateTime()));
+
+        // Last run is provided ($start). Because a one-off should only be due once,
+        // it should not be due again if a last run is provided.
+        $now = new DateTime();
+        $this->assertFalse($oneOff->isDue($now, $start));
     }
 
     public function testGetNextDue()
@@ -24,15 +30,6 @@ class OneOffTest extends TestCase
         $oneOff = new OneOff($now);
 
         $this->assertEquals($now, $oneOff->getNextDue(clone $now));
-    }
-
-    public function testIsExpired()
-    {
-        $now = new DateTime();
-        $oneOff = new OneOff($now);
-
-        $this->assertFalse($oneOff->isExpired($now));
-        $this->assertTrue($oneOff->isExpired(new DateTime()));
     }
 
     public function testJsonSerialize()
@@ -59,12 +56,6 @@ class OneOffTest extends TestCase
                 new DateTime('2023-06-01T18:00:00'),
                 $oneOff->getStart(),
                 'OneOff::jsonSerialize() does not restore the start date with a time zone correctly'
-            );
-
-            $this->assertEquals(
-                new DateTime('2023-06-01T18:00:00'),
-                $oneOff->getEnd(),
-                'OneOff::jsonSerialize() does not restore the start/end date with a time zone correctly'
             );
         } finally {
             date_default_timezone_set($oldTz);

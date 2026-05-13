@@ -8,6 +8,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Generator;
 use InvalidArgumentException;
+use ipl\Scheduler\Common\FrequencyStatus;
 use ipl\Scheduler\Contract\Frequency;
 use Recurr\Exception\InvalidRRule;
 use Recurr\Rule as RecurrRule;
@@ -141,41 +142,57 @@ class RRule implements Frequency
         return $self;
     }
 
-    public function isDue(DateTimeInterface $dateTime): bool
+    public function isDue(DateTimeInterface $dateTime, ?DateTimeInterface $lastRun = null): bool
     {
-        if ($dateTime < $this->rrule->getStartDate() || $this->isExpired($dateTime)) {
+        if ($lastRun === null) {
+            return true;
+        }
+
+        $lastRunNextDue = $this->getNextRecurrences($lastRun, 2);
+        if (! $lastRunNextDue->valid()) {
             return false;
         }
 
+        // Skip the result if it equals $lastRun — we want strictly after. The recurrences are
+        // fetched with $include=true to ensure the end date boundary is part of the result set.
+        // As a consequence, $lastRun itself may be included and needs to be skipped.
+        if ($lastRunNextDue->current() == $lastRun) {
+            $lastRunNextDue->next();
+            if (! $lastRunNextDue->valid()) {
+                return false;
+            }
+        }
+
+        // If the next recurrence based on $lastRun is before $dateTime,
+        // there is definitely a missed run, so the recurrence rule is due.
+        if ($lastRunNextDue->current() < $dateTime) {
+            return true;
+        }
+
+        // If there are no missed runs, check if $dateTime itself is a recurrence point
         $nextDue = $this->getNextRecurrences($dateTime);
-        if (! $nextDue->valid()) {
-            return false;
-        }
 
-        return $nextDue->current() == $dateTime;
+        return $nextDue->valid() && $nextDue->current() == $dateTime;
     }
 
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
-        if ($this->isExpired($dateTime)) {
+        if (FrequencyStatus::fromFrequency($this, $dateTime)->isExpired()) {
             return $this->getEnd();
         }
 
-        $nextDue = $this->getNextRecurrences($dateTime, 1, false);
-        if (! $nextDue->valid()) {
-            return $dateTime;
+        $nextDue = $this->getNextRecurrences($dateTime, 2);
+        // Skip the result if it equals $dateTime — we want strictly after. The recurrences are
+        // fetched with $include=true to ensure the end date boundary is part of the result set.
+        // As a consequence, $dateTime itself may be included and needs to be skipped.
+        if ($nextDue->current() == $dateTime) {
+            $nextDue->next();
+            if (! $nextDue->valid()) {
+                return $dateTime;
+            }
         }
 
         return $nextDue->current();
-    }
-
-    public function isExpired(DateTimeInterface $dateTime): bool
-    {
-        if ($this->rrule->repeatsIndefinitely()) {
-            return false;
-        }
-
-        return $this->getEnd() !== null && $this->getEnd() < $dateTime;
     }
 
     /**
@@ -263,7 +280,7 @@ class RRule implements Frequency
      *
      * @param DateTimeInterface $dateTime
      * @param int $limit Limit the recurrences to be generated to the given value
-     * @param bool $include Whether to include the passed time in the result set
+     * @param bool $include Whether to include both the given date and an optional configured end date in the result set
      *
      * @return Generator<DateTimeInterface>
      */

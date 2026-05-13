@@ -5,7 +5,6 @@ namespace ipl\Tests\Scheduler;
 use DateTime;
 use DateTimeZone;
 use InvalidArgumentException;
-use ipl\Scheduler\Contract\Frequency;
 use ipl\Scheduler\Cron;
 use PHPUnit\Framework\TestCase;
 
@@ -59,23 +58,40 @@ class CronTest extends TestCase
         $this->assertEquals('FEB', $cron->getPart(Cron::PART_MONTH));
     }
 
-    public function testIsDueWithStartTime()
+    public function testIsDueWithoutLastRunCheck()
     {
-        $cron = new Cron('* * * * *');
+        // Should run at every full hour
+        $cron = (new Cron('0 * * * *'))
+            ->startAt(new DateTime('12:00'));
 
-        $this->assertTrue($cron->isDue(new DateTime()));
+        // Exactly at a recurrence point
+        $now = new DateTime('12:00');
+        $this->assertTrue($cron->isDue($now, $now));
 
-        $cron->startAt(new DateTime('+1 week'));
-
-        $this->assertFalse($cron->isDue(new DateTime()));
+        // Between to recurrence points
+        $now = new DateTime('12:30');
+        $this->assertFalse($cron->isDue($now, $now));
     }
 
-    public function testIsDueWithEndTime()
+    public function testIsDueWithLastRunCheck()
     {
-        $cron = new Cron('* * * * *');
-        $cron->endAt(new DateTime('-1 week'));
+        // Should run at every full hour
+        $cron = (new Cron('0 * * * *'))
+            ->startAt(new DateTime('12:00'));
 
-        $this->assertFalse($cron->isDue(new DateTime()));
+        $now = new DateTime('13:30');
+
+        // Simulate there was no last run yet
+        $lastRun = null;
+        $this->assertTrue($cron->isDue($now, $lastRun));
+
+        // Simulate the last run was at 12:00, means the 13:00 run was missed
+        $lastRun = new DateTime('12:00');
+        $this->assertTrue($cron->isDue($now, $lastRun));
+
+        // Simulate the last run was at 13:00
+        $lastRun = new DateTime('13:00');
+        $this->assertFalse($cron->isDue($now, $lastRun));
     }
 
     public function testGetNextDueWithStartTime()
@@ -98,19 +114,6 @@ class CronTest extends TestCase
         $cron->endAt($now);
 
         $this->assertEquals($now, $cron->getNextDue(new DateTime('+2 hours')));
-    }
-
-    public function testIsExpiredWithoutEndTime()
-    {
-        $this->assertFalse((new Cron('* * * * *'))->isExpired(new DateTime()));
-    }
-
-    public function testIsExpiredWithEndTime()
-    {
-        $cron = new Cron('* * * * *');
-        $cron->endAt(new DateTime('-2 hours'));
-
-        $this->assertTrue($cron->isExpired(new DateTime()));
     }
 
     public function testJsonSerializeAndDeserialize()

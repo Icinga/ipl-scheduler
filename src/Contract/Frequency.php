@@ -11,13 +11,23 @@ interface Frequency extends JsonSerializable
     public const SERIALIZED_DATETIME_FORMAT = 'Y-m-d\TH:i:s.ue';
 
     /**
-     * Get whether the frequency is due at the specified time
+     * Get whether the frequency is due
+     *
+     * If $lastRun is set, the last run time is used to determine if the frequency is due at the
+     * specified $dateTime or was due since the last run. This can be used to catch up missed runs.
+     *
+     * To only check if the frequency is due at the specified $dateTime, regardless of the last run time,
+     * pass the same time to both params.
+     *
+     * This method should only be called if $dateTime falls within the scheduled frequency window,
+     * i.e., {@see FrequencyStatus::isReady()} is true.
      *
      * @param DateTimeInterface $dateTime
+     * @param ?DateTimeInterface $lastRun If null is provided, the frequency is definitely due
      *
      * @return bool
      */
-    public function isDue(DateTimeInterface $dateTime): bool;
+    public function isDue(DateTimeInterface $dateTime, ?DateTimeInterface $lastRun = null): bool;
 
     /**
      * Get the next due date relative to the given time
@@ -27,15 +37,6 @@ interface Frequency extends JsonSerializable
      * @return DateTimeInterface
      */
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface;
-
-    /**
-     * Get whether the specified time is beyond the frequency's expiry time
-     *
-     * @param DateTimeInterface $dateTime
-     *
-     * @return bool
-     */
-    public function isExpired(DateTimeInterface $dateTime): bool;
 
     /**
      * Get the start time of this frequency
