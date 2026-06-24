@@ -82,7 +82,7 @@ class CronTest extends TestCase
     {
         $cron = new Cron('* * * * *');
         $now = new DateTime();
-        // After resetting the seconds, we can just modify the expected next due like "+1 Minute"
+        // After resetting seconds, the expected next due can be modified with e.g. "+1 Minute".
         $now->setTime($now->format('H'), $now->format('i'));
 
         $cron->startAt($now);

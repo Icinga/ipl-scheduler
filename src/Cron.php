@@ -11,22 +11,36 @@ use ipl\Scheduler\Contract\Frequency;
 
 use function ipl\Stdlib\get_php_type;
 
+/**
+ * Cron-expression-based scheduling frequency
+ *
+ * Schedules a task based on a standard five-field cron expression (minute, hour, day-of-month, month, day-of-week).
+ * Supports optional start and end bounds via {@see Cron::startAt()} and {@see Cron::endAt()}.
+ */
 class Cron implements Frequency
 {
+    /** @var int Position of the minute field in the cron expression */
     public const PART_MINUTE = 0;
+
+    /** @var int Position of the hour field in the cron expression */
     public const PART_HOUR = 1;
+
+    /** @var int Position of the day-of-month field in the cron expression */
     public const PART_DAY = 2;
+
+    /** @var int Position of the month field in the cron expression */
     public const PART_MONTH = 3;
+
+    /** @var int Position of the day-of-week field in the cron expression */
     public const PART_WEEKDAY = 4;
 
-    /** @var CronExpression */
     protected CronExpression $cron;
 
-    /** @var ?DateTimeInterface Start time of this frequency */
-    protected ?DateTimeInterface $start = null;
+    /** @var ?DateTime Start time of this frequency */
+    protected ?DateTime $start = null;
 
-    /** @var ?DateTimeInterface End time of this frequency */
-    protected ?DateTimeInterface $end = null;
+    /** @var ?DateTime End time of this frequency */
+    protected ?DateTime $end = null;
 
     /** @var string String representation of the cron expression */
     protected string $expression;
@@ -44,6 +58,55 @@ class Cron implements Frequency
         $this->expression = $expression;
     }
 
+    /**
+     * Create a {@see Cron} instance from its stored JSON representation
+     *
+     * The JSON must decode to an array with at least an `expression` key, and optionally `start` and `end` keys
+     * formatted according to {@see Frequency::SERIALIZED_DATETIME_FORMAT}.
+     *
+     * @param string $json
+     *
+     * @return static
+     *
+     * @throws InvalidArgumentException If the JSON does not decode to an array
+     */
+    public static function fromJson(string $json): static
+    {
+        $data = json_decode($json, true);
+        if (! is_array($data)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    '%s expects json decoded value to be an array, got %s instead',
+                    __METHOD__,
+                    get_php_type($data)
+                )
+            );
+        }
+
+        $self = new static($data['expression']);
+        if (isset($data['start'])) {
+            $self->startAt(new DateTime($data['start']));
+        }
+
+        if (isset($data['end'])) {
+            $self->endAt(new DateTime($data['end']));
+        }
+
+        return $self;
+    }
+
+    /**
+     * Get whether the given cron expression is valid
+     *
+     * @param string $expression
+     *
+     * @return bool
+     */
+    public static function isValid(string $expression): bool
+    {
+        return CronExpression::isValidExpression($expression);
+    }
+
     public function isDue(DateTimeInterface $dateTime): bool
     {
         if ($this->isExpired($dateTime) || $dateTime < $this->start) {
@@ -53,6 +116,15 @@ class Cron implements Frequency
         return $this->cron->isDue($dateTime);
     }
 
+    /**
+     * Get the next due date relative to the given time
+     *
+     * Returns the start time if the given time is before the start, or the end time if the frequency is expired.
+     *
+     * @param DateTimeInterface $dateTime
+     *
+     * @return DateTimeInterface
+     */
     public function getNextDue(DateTimeInterface $dateTime): DateTimeInterface
     {
         if ($this->isExpired($dateTime)) {
@@ -82,16 +154,6 @@ class Cron implements Frequency
     }
 
     /**
-     * Get the configured cron expression
-     *
-     * @return string
-     */
-    public function getExpression(): string
-    {
-        return $this->expression;
-    }
-
-    /**
      * Set the start time of this frequency
      *
      * @param DateTimeInterface $start
@@ -100,7 +162,7 @@ class Cron implements Frequency
      */
     public function startAt(DateTimeInterface $start): static
     {
-        $this->start = clone $start;
+        $this->start = DateTime::createFromInterface($start);
         $this->start->setTimezone(new DateTimeZone(date_default_timezone_get()));
 
         return $this;
@@ -115,10 +177,20 @@ class Cron implements Frequency
      */
     public function endAt(DateTimeInterface $end): static
     {
-        $this->end = clone $end;
+        $this->end = DateTime::createFromInterface($end);
         $this->end->setTimezone(new DateTimeZone(date_default_timezone_get()));
 
         return $this;
+    }
+
+    /**
+     * Get the configured cron expression
+     *
+     * @return string
+     */
+    public function getExpression(): string
+    {
+        return $this->expression;
     }
 
     /**
@@ -151,42 +223,13 @@ class Cron implements Frequency
     }
 
     /**
-     * Get whether the given cron expression is valid
+     * Serialize this frequency to a JSON-encodable array
      *
-     * @param string $expression
+     * Always includes the `expression` key; `start` and `end` are included only when set,
+     * formatted according to {@see Frequency::SERIALIZED_DATETIME_FORMAT}.
      *
-     * @return bool
+     * @return array<string, string>
      */
-    public static function isValid(string $expression): bool
-    {
-        return CronExpression::isValidExpression($expression);
-    }
-
-    public static function fromJson(string $json): static
-    {
-        $data = json_decode($json, true);
-        if (! is_array($data)) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    '%s expects json decoded value to be an array, got %s instead',
-                    __METHOD__,
-                    get_php_type($data)
-                )
-            );
-        }
-
-        $self = new static($data['expression']);
-        if (isset($data['start'])) {
-            $self->startAt(new DateTime($data['start']));
-        }
-
-        if (isset($data['end'])) {
-            $self->endAt(new DateTime($data['end']));
-        }
-
-        return $self;
-    }
-
     public function jsonSerialize(): array
     {
         $data = ['expression' => $this->getExpression()];

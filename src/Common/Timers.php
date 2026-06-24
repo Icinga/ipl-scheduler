@@ -6,6 +6,11 @@ use Ramsey\Uuid\UuidInterface;
 use React\EventLoop\TimerInterface;
 use SplObjectStorage;
 
+/**
+ * Tracks scheduled {@see TimerInterface timers} per UUID
+ *
+ * Provides helpers to attach and detach event-loop timers keyed by a {@see UuidInterface}.
+ */
 trait Timers
 {
     /** @var SplObjectStorage<UuidInterface, TimerInterface> */
@@ -16,9 +21,7 @@ trait Timers
      *
      * **Example Usage:**
      *
-     * ```php
-     * $timers->attachTimer($uuid, Loop::addTimer($interval, $callback));
-     * ```
+     *     $timers->attachTimer($uuid, Loop::addTimer($interval, $callback));
      *
      * @param UuidInterface $uuid
      * @param TimerInterface $timer
@@ -37,9 +40,7 @@ trait Timers
      *
      * **Example Usage:**
      *
-     * ```php
-     * Loop::cancelTimer($timers->detachTimer($uuid));
-     * ```
+     *     Loop::cancelTimer($timers->detachTimer($uuid));
      *
      * @param UuidInterface $uuid
      *
