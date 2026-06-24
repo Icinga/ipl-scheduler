@@ -237,6 +237,7 @@ class RRule implements Frequency
         $this->rrule->setTimezone($timezone);
 
         $this->rrule->setStartDate($this->alignTimezone($this->rrule->getStartDate()));
+        $this->rrule->setEndDate($this->alignTimezone($this->rrule->getEndDate()));
         $until = $this->rrule->getUntil();
         if ($until !== null) {
             $this->rrule->setUntil($this->alignTimezone($until));
@@ -414,8 +415,8 @@ class RRule implements Frequency
     /**
      * Align a datetime to the rrule's configured timezone
      *
-     * Recurr requires all dates (start, until) to share the rrule's own timezone,
-     * otherwise recurrences are calculated against the wrong UTC offset.
+     * Recurr requires all dates to share the rrule's own timezone, otherwise
+     * recurrences are calculated against the wrong UTC offset.
      *
      * @param ?DateTimeInterface $dateTime
      *
