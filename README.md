@@ -20,7 +20,7 @@ composer require ipl/scheduler
 
 `ipl/scheduler` requires PHP 8.2 or later.
 
-For production use, install the [`ext-ev`](https://www.php.net/manual/en/intro.ev.php)
+For production use, install the [`ext-ev`](https://www.php.net/manual/en/book.ev.php)
 PHP extension to improve event loop efficiency.
 
 ## Key Abstractions
