@@ -4,6 +4,8 @@ All notable changes to this library are documented in this file.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-27
+
 - Remove unused `psr/log` dependency (#68)
 
 ## [1.0.0] - 2026-07-02
@@ -43,7 +45,8 @@ All notable changes to this library are documented in this file.
 Initial release providing cron-based (`Cron`), iCal recurrence-based (`RRule`),
 and one-off (`OneOff`) task scheduling in a ReactPHP event loop.
 
-[Unreleased]: https://github.com/Icinga/ipl-scheduler/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Icinga/ipl-scheduler/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/Icinga/ipl-scheduler/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Icinga/ipl-scheduler/releases/tag/v1.0.0
 [0.3.0]: https://github.com/Icinga/ipl-scheduler/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Icinga/ipl-scheduler/releases/tag/v0.2.0
