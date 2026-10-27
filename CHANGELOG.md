@@ -4,6 +4,8 @@ All notable changes to this library are documented in this file.
 
 ## [Unreleased]
 
+- Remove unused `psr/log` dependency (#68)
+
 ## [1.0.0] - 2026-07-02
 
 - **Breaking:** Upgrade `react/promise` to version 3.3.0, dropping
