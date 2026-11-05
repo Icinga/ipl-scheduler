@@ -4,6 +4,9 @@ All notable changes to this library are documented in this file.
 
 ## [Unreleased]
 
+- Fix `RRule::getNextRecurrences()` leaking a raised limit into subsequent calls
+  when its result isn't fully iterated (#70)
+
 ## [1.0.1] - 2026-10-27
 
 - Remove unused `psr/log` dependency (#68)
