@@ -99,6 +99,25 @@ class RRuleTest extends TestCase
         $this->assertCount(5, iterator_to_array($rrule->getNextRecurrences(new DateTime(), 5)));
     }
 
+    public function testGetNextRecurrencesRestoresDefaultLimitWhenNotFullyConsumed()
+    {
+        $start = new DateTime('2023-01-01 12:00:00');
+        $rrule = RRule::fromFrequency(RRule::DAILY)
+            ->startAt($start);
+
+        // Only consume the first of the five requested recurrences and abandon the generator,
+        // as any other callers may do when they are only interested in the very next one.
+        $recurrences = $rrule->getNextRecurrences($start, 5);
+        $this->assertEquals($start, $recurrences->current());
+        unset($recurrences);
+
+        $this->assertCount(
+            1,
+            iterator_to_array($rrule->getNextRecurrences($start)),
+            'The raised limit of a previous, partially consumed call leaks into subsequent calls'
+        );
+    }
+
     public function testGetNextRecurrencesWithExpiredStartTime()
     {
         $rrule = RRule::fromFrequency(RRule::MINUTELY)
